@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AlarmCore", "AlarmCore\Alar
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModuleTestSMS", "ModuleTestSMS\ModuleTestSMS.vcxproj", "{34E6B22D-EB80-40BF-A9EF-5034DF60F771}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModuleTestModbus", "ModuleTestModbus\ModuleTestModbus.vcxproj", "{71CC9670-7093-47A7-82C4-BF49DAB1A3CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,10 @@ Global
 		{34E6B22D-EB80-40BF-A9EF-5034DF60F771}.Debug|x64.Build.0 = Debug|x64
 		{34E6B22D-EB80-40BF-A9EF-5034DF60F771}.Release|x64.ActiveCfg = Release|x64
 		{34E6B22D-EB80-40BF-A9EF-5034DF60F771}.Release|x64.Build.0 = Release|x64
+		{71CC9670-7093-47A7-82C4-BF49DAB1A3CC}.Debug|x64.ActiveCfg = Debug|x64
+		{71CC9670-7093-47A7-82C4-BF49DAB1A3CC}.Debug|x64.Build.0 = Debug|x64
+		{71CC9670-7093-47A7-82C4-BF49DAB1A3CC}.Release|x64.ActiveCfg = Release|x64
+		{71CC9670-7093-47A7-82C4-BF49DAB1A3CC}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

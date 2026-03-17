@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>test_module_busClass</class>
+ <widget class="QMainWindow" name="test_module_busClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>400</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>test_module_bus</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <widget class="QListWidget" name="listWidget">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>30</y>
+      <width>256</width>
+      <height>192</height>
+     </rect>
+    </property>
+    <property name="currentRow">
+     <number>-1</number>
+    </property>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>30</y>
+      <width>251</width>
+      <height>83</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <layout class="QHBoxLayout" name="FlashCiel1HorizontalLayout">
+       <item>
+        <widget class="QLabel" name="FlashCiel1Label">
+         <property name="text">
+          <string>Flash CIEL 1 :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="FlashCiel1On">
+         <property name="text">
+          <string>ON</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>1</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="FlashCiel1Off">
+         <property name="text">
+          <string>OFF</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>1</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="FlashCiel2HorizontalLayout">
+       <item>
+        <widget class="QLabel" name="FlashCiel2Label">
+         <property name="text">
+          <string>Flash CIEL 2 :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="FlashCiel2On">
+         <property name="text">
+          <string>ON</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>3</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="FlashCiel2Off">
+         <property name="text">
+          <string>OFF</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>3</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="FlashCiel1HorizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="SirenePHLabel">
+         <property name="text">
+          <string>Sirène PH :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="SirenePHOn">
+         <property name="text">
+          <string>ON</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>6</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="SirenePHOff">
+         <property name="text">
+          <string>OFF</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>6</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>600</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="test_module_bus.qrc"/>
+ </resources>
+ <connections/>
+</ui>

@@ -23,36 +23,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="alarmcore_global.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <QtMoc Include="AlarmCore.h">
+    <QtRcc Include="test_module_bus.qrc">
+      <Filter>Resource Files</Filter>
+    </QtRcc>
+    <QtUic Include="test_module_bus.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtMoc Include="test_module_bus.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <ClCompile Include="AlarmCore.cpp">
+    <ClCompile Include="test_module_bus.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AlarmNotifierStrategy.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SMSAlertNotifierStrategy.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="qmodbustcpclient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="AlarmNotifierStrategy.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="SMSAlertNotifierStrategy.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="qmodbustcpclient.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
   </ItemGroup>
 </Project>
