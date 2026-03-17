@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36414.22 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QT_modules_test_SMS", "QT_modules_test_SMS.vcxproj", "{34E6B22D-EB80-40BF-A9EF-5034DF60F771}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AlarmCore", "..\AlarmCore\AlarmCore.vcxproj", "{41C48E18-1E27-432D-90B6-98589B639DF9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{34E6B22D-EB80-40BF-A9EF-5034DF60F771}.Debug|x64.ActiveCfg = Debug|x64
+		{34E6B22D-EB80-40BF-A9EF-5034DF60F771}.Debug|x64.Build.0 = Debug|x64
+		{34E6B22D-EB80-40BF-A9EF-5034DF60F771}.Release|x64.ActiveCfg = Release|x64
+		{34E6B22D-EB80-40BF-A9EF-5034DF60F771}.Release|x64.Build.0 = Release|x64
+		{41C48E18-1E27-432D-90B6-98589B639DF9}.Debug|x64.ActiveCfg = Debug|x64
+		{41C48E18-1E27-432D-90B6-98589B639DF9}.Debug|x64.Build.0 = Debug|x64
+		{41C48E18-1E27-432D-90B6-98589B639DF9}.Release|x64.ActiveCfg = Release|x64
+		{41C48E18-1E27-432D-90B6-98589B639DF9}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7F3E65D3-5550-4C34-A737-9A7A8CAEFEE9}
+	EndGlobalSection
+EndGlobal
