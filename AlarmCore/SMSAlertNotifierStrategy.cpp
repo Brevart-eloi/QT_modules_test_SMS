@@ -4,7 +4,7 @@
 #include <qbytearray.h>
 #include <qnetworkrequest.h>
 #include <QtCore/QCryptographicHash>
-#include <QtCore/QDateTime> // ajout que grémont n'a pas vue : include pour QDateTime
+#include <QtCore/QDateTime> 
 
 SMSAlertNotifierStrategy::SMSAlertNotifierStrategy(QObject* parent)
 	: AlarmNotifierStrategy(parent)
@@ -33,8 +33,6 @@ bool SMSAlertNotifierStrategy::sendAlert(QString description)
 
     QString URL = "https://eu.api.ovh.com/1.0/sms/" + service + "/jobs";
 
-    // TODO demander par grémont : method, fullUrl, body, TSTAMP 
-    // ajout que grémont m'a demander :
     QString method = "POST"; 
     QString fullUrl = URL; 
     QString body = "{\"message\":\"" + description + "\",\"noStopClause\":true,\"receivers\":[\"+33781850278\"],\"senderForResponse\":true}"; 
@@ -49,7 +47,6 @@ bool SMSAlertNotifierStrategy::sendAlert(QString description)
 	request.setRawHeader("X-Ovh-Application", AK.toUtf8());
 	request.setRawHeader("X-Ovh-Consumer", CK.toUtf8());
 	request.setRawHeader("X-Ovh-Timestamp", QString::number(QDateTime::currentSecsSinceEpoch()).toUtf8());
-    // TODO demander par grémont :
 	request.setRawHeader("X-Ovh-Signature", (QString("$1$") + QString(QCryptographicHash::hash(
         (AS + "+" + CK + "+POST+" + URL + "+" +
         "{\"message\":\"" + description + "\",\"noStopClause\":true,\"receivers\":[\"+33781850278\"],\"senderForResponse\":true}" +
