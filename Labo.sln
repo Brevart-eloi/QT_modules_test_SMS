@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModuleTestSMS", "ModuleTest
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModuleTestModbus", "ModuleTestModbus\ModuleTestModbus.vcxproj", "{71CC9670-7093-47A7-82C4-BF49DAB1A3CC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestRfidLecteur", "TestRfidLecteur\TestRfidLecteur.vcxproj", "{F8E11281-F673-4CAD-A2B7-2AC2AFED389D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -27,6 +29,10 @@ Global
 		{71CC9670-7093-47A7-82C4-BF49DAB1A3CC}.Debug|x64.Build.0 = Debug|x64
 		{71CC9670-7093-47A7-82C4-BF49DAB1A3CC}.Release|x64.ActiveCfg = Release|x64
 		{71CC9670-7093-47A7-82C4-BF49DAB1A3CC}.Release|x64.Build.0 = Release|x64
+		{F8E11281-F673-4CAD-A2B7-2AC2AFED389D}.Debug|x64.ActiveCfg = Debug|x64
+		{F8E11281-F673-4CAD-A2B7-2AC2AFED389D}.Debug|x64.Build.0 = Debug|x64
+		{F8E11281-F673-4CAD-A2B7-2AC2AFED389D}.Release|x64.ActiveCfg = Release|x64
+		{F8E11281-F673-4CAD-A2B7-2AC2AFED389D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
