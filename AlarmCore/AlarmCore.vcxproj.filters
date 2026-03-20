@@ -32,6 +32,9 @@
     <ClCompile Include="AlarmCore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClInclude Include="MailAlertNotifierStrategy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AlarmNotifierStrategy.cpp">
@@ -41,6 +44,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="qmodbustcpclient.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MailAlertNotifierStrategy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
