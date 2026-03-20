@@ -7,6 +7,7 @@
 class ALARMCORE_EXPORT SMSAlertNotifierStrategy :
     public AlarmNotifierStrategy
 {
+
     Q_OBJECT
 public:
     SMSAlertNotifierStrategy(QObject* parent = nullptr);
