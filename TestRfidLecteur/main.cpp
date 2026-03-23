@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 
     TestRfidLecteur window;
     window.setWindowTitle("Test Lecteur RFID - Modbus TCP");
-    window.resize(600, 500);
+    window.resize(650, 550);
     window.show();
 
     return app.exec();

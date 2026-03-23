@@ -13,12 +13,7 @@
 #include <QGroupBox>
 
 // ============================================================================
-// Si tu utilises le .ui avec Qt Designer, remplace le contenu du constructeur
-// par :   ui->setupUi(this);
-// et récupère les widgets via :   lineEditIp = ui->lineEditIp;   etc.
-//
-// Sinon, ce constructeur récupère les widgets par leur objectName défini
-// dans le .ui grâce à findChild<>().
+//  CONSTRUCTEUR
 // ============================================================================
 
 TestRfidLecteur::TestRfidLecteur(QWidget* parent)
@@ -26,225 +21,149 @@ TestRfidLecteur::TestRfidLecteur(QWidget* parent)
     modbusClient(nullptr),
     pollTimer(nullptr),
     isConnected(false),
-    isPolling(false)
+    isSurveillance(false),
+    dernierCardId("")
 {
-    // ------------------------------------------------------------------
-    // Récupération des widgets depuis le .ui (par objectName)
-    // ------------------------------------------------------------------
-    // IMPORTANT : les noms ci-dessous doivent correspondre EXACTEMENT
-    //             aux objectName que tu définis dans Qt Designer.
-    // ------------------------------------------------------------------
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
 
-    // Comme le .ui n'est pas encore créé, on ne peut pas faire setupUi().
-    // À la place, le code suivant sera utilisé APRES que tu aies
-    // fait setupUi(this) dans le constructeur.
-    //
-    // Pour le moment, je laisse des commentaires pour guider l'intégration.
-    // Quand ton .ui est prêt, décommente setupUi(this) et commente les findChild.
+    // ---- Ligne 1 : Connexion ----
+    QHBoxLayout* connLayout = new QHBoxLayout();
 
-    // === OPTION A : si tu utilises un .ui avec la classe Ui:: ===
-    // #include "ui_TestRfidLecteur.h"
-    // Ui::TestRfidLecteurClass ui;
-    // ui.setupUi(this);
-    // lineEditIp             = ui.lineEditIp;
-    // spinBoxPort            = ui.spinBoxPort;
-    // spinBoxUnitId          = ui.spinBoxUnitId;
-    // btnConnecter           = ui.btnConnecter;
-    // btnPolling             = ui.btnPolling;
-    // btnResetFlag           = ui.btnResetFlag;
-    // labelStatutConnexion   = ui.labelStatutConnexion;
-    // labelCardId            = ui.labelCardId;
-    // labelTagType           = ui.labelTagType;
-    // labelIdLen             = ui.labelIdLen;
-    // textEditLog            = ui.textEditLog;
+    connLayout->addWidget(new QLabel("IP :"));
+    lineEditIp = new QLineEdit("172.29.18.200");
+    lineEditIp->setObjectName("lineEditIp");
+    connLayout->addWidget(lineEditIp);
 
-    // === OPTION B : récupération par objectName (après setupUi) ===
-    // Décommente ces lignes après avoir fait setupUi(this) :
-    /*
-    lineEditIp             = findChild<QLineEdit*>("lineEditIp");
-    spinBoxPort            = findChild<QSpinBox*>("spinBoxPort");
-    spinBoxUnitId          = findChild<QSpinBox*>("spinBoxUnitId");
-    btnConnecter           = findChild<QPushButton*>("btnConnecter");
-    btnPolling             = findChild<QPushButton*>("btnPolling");
-    btnResetFlag           = findChild<QPushButton*>("btnResetFlag");
-    labelStatutConnexion   = findChild<QLabel*>("labelStatutConnexion");
-    labelCardId            = findChild<QLabel*>("labelCardId");
-    labelTagType           = findChild<QLabel*>("labelTagType");
-    labelIdLen             = findChild<QLabel*>("labelIdLen");
-    textEditLog            = findChild<QTextEdit*>("textEditLog");
-    */
+    connLayout->addWidget(new QLabel("Port :"));
+    spinBoxPort = new QSpinBox();
+    spinBoxPort->setObjectName("spinBoxPort");
+    spinBoxPort->setRange(1, 65535);
+    spinBoxPort->setValue(502);
+    connLayout->addWidget(spinBoxPort);
 
-    // === OPTION C : création en code (pour tester sans .ui) ===
-    // Tu peux supprimer tout ce bloc quand ton .ui est prêt.
-    {
-        QVBoxLayout* mainLayout = new QVBoxLayout(this);
+    connLayout->addWidget(new QLabel("Unit ID :"));
+    spinBoxUnitId = new QSpinBox();
+    spinBoxUnitId->setObjectName("spinBoxUnitId");
+    spinBoxUnitId->setRange(0, 255);
+    spinBoxUnitId->setValue(1);
+    connLayout->addWidget(spinBoxUnitId);
 
-        // --- Zone connexion ---
-        QHBoxLayout* connLayout = new QHBoxLayout();
-        connLayout->addWidget(new QLabel("IP :"));
-        lineEditIp = new QLineEdit("172.29.18.200");
-        lineEditIp->setObjectName("lineEditIp");
-        connLayout->addWidget(lineEditIp);
+    btnConnecter = new QPushButton("Connecter");
+    btnConnecter->setObjectName("btnConnecter");
+    connLayout->addWidget(btnConnecter);
 
-        connLayout->addWidget(new QLabel("Port :"));
-        spinBoxPort = new QSpinBox();
-        spinBoxPort->setObjectName("spinBoxPort");
-        spinBoxPort->setRange(1, 65535);
-        spinBoxPort->setValue(502);
-        connLayout->addWidget(spinBoxPort);
+    mainLayout->addLayout(connLayout);
 
-        connLayout->addWidget(new QLabel("Unit ID :"));
-        spinBoxUnitId = new QSpinBox();
-        spinBoxUnitId->setObjectName("spinBoxUnitId");
-        spinBoxUnitId->setRange(0, 255);
-        spinBoxUnitId->setValue(1);
-        connLayout->addWidget(spinBoxUnitId);
+    // ---- Ligne 2 : Statut + bouton surveillance ----
+    QHBoxLayout* statutLayout = new QHBoxLayout();
 
-        btnConnecter = new QPushButton("Connecter");
-        btnConnecter->setObjectName("btnConnecter");
-        connLayout->addWidget(btnConnecter);
+    labelStatut = new QLabel("Déconnecté");
+    labelStatut->setObjectName("labelStatut");
+    labelStatut->setStyleSheet("color: red; font-weight: bold; font-size: 13px;");
+    statutLayout->addWidget(labelStatut);
 
-        mainLayout->addLayout(connLayout);
+    statutLayout->addStretch();
 
-        // --- Zone statut ---
-        QHBoxLayout* statutLayout = new QHBoxLayout();
-        statutLayout->addWidget(new QLabel("Statut :"));
-        labelStatutConnexion = new QLabel("Déconnecté");
-        labelStatutConnexion->setObjectName("labelStatutConnexion");
-        labelStatutConnexion->setStyleSheet("color: red; font-weight: bold;");
-        statutLayout->addWidget(labelStatutConnexion);
-        statutLayout->addStretch();
-        mainLayout->addLayout(statutLayout);
+    btnSurveiller = new QPushButton("Surveiller les badges");
+    btnSurveiller->setObjectName("btnSurveiller");
+    btnSurveiller->setEnabled(false);
+    btnSurveiller->setStyleSheet("padding: 8px 20px; font-weight: bold;");
+    statutLayout->addWidget(btnSurveiller);
 
-        // --- Zone polling ---
-        QHBoxLayout* pollLayout = new QHBoxLayout();
-        btnPolling = new QPushButton("Démarrer le polling");
-        btnPolling->setObjectName("btnPolling");
-        btnPolling->setEnabled(false);
-        pollLayout->addWidget(btnPolling);
+    mainLayout->addLayout(statutLayout);
 
-        btnResetFlag = new QPushButton("Reset Flag Lecture");
-        btnResetFlag->setObjectName("btnResetFlag");
-        btnResetFlag->setEnabled(false);
-        pollLayout->addWidget(btnResetFlag);
-        pollLayout->addStretch();
-        mainLayout->addLayout(pollLayout);
+    // ---- Zone résultat carte ----
+    QGroupBox* groupCarte = new QGroupBox("Dernière carte détectée");
+    QFormLayout* formCarte = new QFormLayout(groupCarte);
 
-        // --- Zone résultat carte ---
-        QGroupBox* groupResultat = new QGroupBox("Dernière carte lue");
-        QFormLayout* formLayout = new QFormLayout(groupResultat);
+    labelCardId = new QLabel("En attente...");
+    labelCardId->setObjectName("labelCardId");
+    labelCardId->setStyleSheet("font-size: 22px; font-weight: bold; color: #1a5fb4;");
+    labelCardId->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    formCarte->addRow("UID :", labelCardId);
 
-        labelCardId = new QLabel("---");
-        labelCardId->setObjectName("labelCardId");
-        labelCardId->setStyleSheet("font-size: 18px; font-weight: bold; color: #2060c0;");
-        formLayout->addRow("UID Carte :", labelCardId);
+    labelTagType = new QLabel("---");
+    labelTagType->setObjectName("labelTagType");
+    formCarte->addRow("Type :", labelTagType);
 
-        labelIdLen = new QLabel("---");
-        labelIdLen->setObjectName("labelIdLen");
-        formLayout->addRow("Longueur ID :", labelIdLen);
+    mainLayout->addWidget(groupCarte);
 
-        labelTagType = new QLabel("---");
-        labelTagType->setObjectName("labelTagType");
-        formLayout->addRow("Type de tag :", labelTagType);
+    // ---- Zone log ----
+    textEditLog = new QTextEdit();
+    textEditLog->setObjectName("textEditLog");
+    textEditLog->setReadOnly(true);
+    textEditLog->setMaximumHeight(200);
+    textEditLog->setStyleSheet("font-family: Consolas, monospace; font-size: 10px;");
+    mainLayout->addWidget(textEditLog);
 
-        mainLayout->addWidget(groupResultat);
-
-        // --- Zone log ---
-        mainLayout->addWidget(new QLabel("Journal :"));
-        textEditLog = new QTextEdit();
-        textEditLog->setObjectName("textEditLog");
-        textEditLog->setReadOnly(true);
-        mainLayout->addWidget(textEditLog);
-    }
-
-    // ------------------------------------------------------------------
-    // Connexion des signaux des boutons
-    // ------------------------------------------------------------------
+    // ---- Connexions signaux ----
     connect(btnConnecter, &QPushButton::clicked, this, &TestRfidLecteur::onBtnConnecterClicked);
-    connect(btnPolling, &QPushButton::clicked, this, &TestRfidLecteur::onBtnPollingClicked);
-    connect(btnResetFlag, &QPushButton::clicked, this, &TestRfidLecteur::onBtnResetFlagClicked);
+    connect(btnSurveiller, &QPushButton::clicked, this, &TestRfidLecteur::onBtnSurveillerClicked);
 
-    // ------------------------------------------------------------------
-    // Timer de polling (non démarré)
-    // ------------------------------------------------------------------
+    // Timer de surveillance (800ms entre chaque lecture)
     pollTimer = new QTimer(this);
-    pollTimer->setInterval(500); // Polling toutes les 500ms
+    pollTimer->setInterval(800);
     connect(pollTimer, &QTimer::timeout, this, &TestRfidLecteur::onPollTimerTimeout);
 
-    log("Application prête. Connectez-vous au lecteur RFID.");
+    log("Prêt. Cliquez sur Connecter puis Surveiller les badges.");
 }
 
 TestRfidLecteur::~TestRfidLecteur()
 {
-    if (pollTimer && pollTimer->isActive()) {
+    if (pollTimer && pollTimer->isActive())
         pollTimer->stop();
-    }
     if (modbusClient) {
         modbusClient->close();
         delete modbusClient;
-        modbusClient = nullptr;
     }
 }
 
 // ============================================================================
-//  SLOTS BOUTONS
+//  BOUTONS
 // ============================================================================
 
 void TestRfidLecteur::onBtnConnecterClicked()
 {
-    if (!isConnected) {
-        connecterAuLecteur();
-    }
-    else {
-        deconnecterDuLecteur();
-    }
+    if (!isConnected)
+        connecter();
+    else
+        deconnecter();
 }
 
-void TestRfidLecteur::onBtnPollingClicked()
+void TestRfidLecteur::onBtnSurveillerClicked()
 {
-    if (!isPolling) {
-        demarrerPolling();
-    }
-    else {
-        arreterPolling();
-    }
-}
-
-void TestRfidLecteur::onBtnResetFlagClicked()
-{
-    if (modbusClient && isConnected) {
-        resetReadFlag();
-    }
+    if (!isSurveillance)
+        demarrerSurveillance();
+    else
+        arreterSurveillance();
 }
 
 // ============================================================================
-//  CONNEXION / DÉCONNEXION
+//  CONNEXION
 // ============================================================================
 
-void TestRfidLecteur::connecterAuLecteur()
+void TestRfidLecteur::connecter()
 {
     QString ip = lineEditIp->text().trimmed();
     quint16 port = static_cast<quint16>(spinBoxPort->value());
-    quint8  unitId = static_cast<quint8>(spinBoxUnitId->value());
+    quint8  uid = static_cast<quint8>(spinBoxUnitId->value());
 
     if (ip.isEmpty()) {
-        QMessageBox::warning(this, "Erreur", "Veuillez entrer une adresse IP.");
+        QMessageBox::warning(this, "Erreur", "Entrez une adresse IP.");
         return;
     }
 
-    log(QString("Connexion à %1:%2 (Unit ID: %3)...").arg(ip).arg(port).arg(unitId));
+    log(QString("Connexion à %1:%2 ...").arg(ip).arg(port));
 
-    // Nettoyage de l'ancien client si existant
     if (modbusClient) {
         modbusClient->close();
         modbusClient->deleteLater();
         modbusClient = nullptr;
     }
 
-    // Création du client Modbus TCP (classe du projet AlarmCore)
-    modbusClient = new QModbusTcpClient(ip, port, unitId, this);
+    modbusClient = new QModbusTcpClient(ip, port, uid, this);
 
-    // Connexion des signaux de QTcpSocket (classe parente de QModbusTcpClient)
+    // Signaux socket
     connect(modbusClient, &QTcpSocket::connected,
         this, &TestRfidLecteur::onSocketConnected);
     connect(modbusClient, &QTcpSocket::disconnected,
@@ -252,231 +171,251 @@ void TestRfidLecteur::connecterAuLecteur()
     connect(modbusClient, QOverload<QAbstractSocket::SocketError>::of(&QAbstractSocket::errorOccurred),
         this, &TestRfidLecteur::onSocketError);
 
-    // Connexion des signaux Modbus
-    // FC03 : lecture de Holding Registers
+    // Signal Modbus FC03 (lecture Holding Registers)
     connect(modbusClient, &QModbusTcpClient::onReadMultipleHoldingRegistersSentence,
         this, &TestRfidLecteur::onHoldingRegistersReceived);
 
-    // FC06 : écriture d'un mot (pour reset du flag)
-    connect(modbusClient, &QModbusTcpClient::onWriteSingleWordSentence,
-        this, &TestRfidLecteur::onWriteSingleWordDone);
-
-    // Lancement de la connexion TCP
     modbusClient->connectToHost();
 }
 
-void TestRfidLecteur::deconnecterDuLecteur()
+void TestRfidLecteur::deconnecter()
 {
-    arreterPolling();
-
+    arreterSurveillance();
     if (modbusClient) {
         modbusClient->close();
         modbusClient->deleteLater();
         modbusClient = nullptr;
     }
-
     isConnected = false;
-    updateEtatBoutons();
-    labelStatutConnexion->setText("Déconnecté");
-    labelStatutConnexion->setStyleSheet("color: red; font-weight: bold;");
-    log("Déconnecté du lecteur.");
+    updateBoutons();
+    labelStatut->setText("Déconnecté");
+    labelStatut->setStyleSheet("color: red; font-weight: bold; font-size: 13px;");
+    log("Déconnecté.");
 }
 
 // ============================================================================
-//  POLLING
+//  SURVEILLANCE (= le polling)
+// ============================================================================
+//
+//  Le "polling" (= surveillance) c'est tout simplement :
+//    → Toutes les 800ms, on envoie une requête Modbus FC03
+//      pour lire les registres du lecteur RFID.
+//    → Quand on reçoit la réponse, on regarde si l'ID de la carte
+//      a changé par rapport à la dernière lecture.
+//    → Si oui → nouvelle carte détectée !
+//
+//  Pourquoi on fait ça en boucle ?
+//    Parce que le lecteur RFID ne nous "prévient" pas tout seul
+//    quand quelqu'un badge. C'est nous qui devons lui demander
+//    régulièrement "hey, quelqu'un a badgé ?".
+//    C'est ça le polling : demander en boucle.
+//
 // ============================================================================
 
-void TestRfidLecteur::demarrerPolling()
+void TestRfidLecteur::demarrerSurveillance()
 {
     if (!isConnected || !modbusClient) return;
 
-    isPolling = true;
+    dernierCardId = "";  // On oublie l'ancienne carte
+    isSurveillance = true;
     pollTimer->start();
-    updateEtatBoutons();
-    log("Polling démarré (intervalle : 500ms). Présentez un badge...");
+    updateBoutons();
+    log("Surveillance démarrée. Présentez un badge sur le lecteur...");
 }
 
-void TestRfidLecteur::arreterPolling()
+void TestRfidLecteur::arreterSurveillance()
 {
-    isPolling = false;
-    if (pollTimer->isActive()) {
+    isSurveillance = false;
+    if (pollTimer && pollTimer->isActive())
         pollTimer->stop();
-    }
-    updateEtatBoutons();
-    log("Polling arrêté.");
+    updateBoutons();
+    if (isConnected)
+        log("Surveillance arrêtée.");
 }
 
 void TestRfidLecteur::onPollTimerTimeout()
 {
+    // À chaque tick du timer, on lit les registres
     lireRegistres();
 }
 
 // ============================================================================
-//  LECTURE / ÉCRITURE MODBUS
+//  LECTURE MODBUS
 // ============================================================================
 
 void TestRfidLecteur::lireRegistres()
 {
     if (!modbusClient || !isConnected) return;
 
-    // Lecture des Holding Registers de l'adresse HR_NEW_ID_FLAG (1) sur 17 registres.
-    // Cela couvre : flag(1), idLen(2), id[0..9](3-12), ..., tagType(17).
+    // On lit 17 registres à partir de l'adresse 0 (0-based).
     //
-    // NOTE IMPORTANTE SUR L'ADRESSAGE :
-    // La doc Inveo utilise des adresses 1-based (registre 1, 2, 3...).
-    // Le protocole Modbus standard utilise des adresses 0-based dans la trame PDU.
-    // Si la classe QModbusTcpClient utilise l'adressage 0-based, il faudra
-    // remplacer HR_NEW_ID_FLAG par (HR_NEW_ID_FLAG - 1), soit 0.
-    // Essayez d'abord tel quel ; si ça ne fonctionne pas, soustrayez 1.
+    // D'après ton dump, l'adressage est 0-based :
+    //   Registre  0 = flag newId (HR 1 dans la doc Inveo)
+    //   Registre  1 = ID_LEN     (HR 2 dans la doc)
+    //   Registre  2 = ID[0]      (HR 3 dans la doc)
+    //   ...
+    //   Registre 11 = ID[9]      (HR 12 dans la doc)
+    //   Registre 12 = Tag type   (HR 13 dans la doc)
+    //   Registre 13 = ID_MODEL   (HR 14 dans la doc) → 0x5408 chez toi
+    //   Registre 14 = ID_SW      (HR 15 dans la doc) → 0x0078
+    //   Registre 15 = ID_HW      (HR 16 dans la doc) → 0x0200
+    //   Registre 16 = Type TAG   (HR 17 dans la doc) → 0x0002 = User
+    //
+    // ATTENTION : la doc Inveo est en 1-based mais le lecteur
+    // utilise l'adressage PDU Modbus standard (0-based).
 
-    modbusClient->readMultipleHoldingRegistersFC3(HR_NEW_ID_FLAG, NB_REGISTERS_TO_READ);
-}
-
-void TestRfidLecteur::resetReadFlag()
-{
-    if (!modbusClient || !isConnected) return;
-
-    log("Reset du flag de lecture (HR 1 = 0)...");
-
-    // Écriture de 0 dans le Holding Register 1 (flag de nouvelle lecture)
-    // Cela permet au lecteur de détecter la prochaine carte.
-    modbusClient->writeSingleWordFC6(HR_NEW_ID_FLAG, 0);
+    modbusClient->readMultipleHoldingRegistersFC3(0, 17);
 }
 
 // ============================================================================
-//  RÉPONSES MODBUS
+//  RÉPONSE MODBUS - C'est ici que tout se passe !
 // ============================================================================
 
 void TestRfidLecteur::onHoldingRegistersReceived(quint16 startAddress, QVector<quint16> values)
 {
-    // On vérifie qu'on a bien reçu les registres attendus
-    if (values.size() < NB_REGISTERS_TO_READ) {
-        // Réponse trop courte, on ignore silencieusement
+    if (startAddress != 0 || values.size() < 17)
         return;
-    }
 
-    // ----------------------------------------------------------------
-    // Mapping des indices dans le vecteur :
-    //   values[0]  = HR 1  = newId flag
-    //   values[1]  = HR 2  = ID_LEN (longueur de l'ID en octets)
-    //   values[2]  = HR 3  = ID[0]
-    //   values[3]  = HR 4  = ID[1]
-    //   values[4]  = HR 5  = ID[2]
-    //   values[5]  = HR 6  = ID[3]
-    //   values[6]  = HR 7  = ID[4]
-    //   values[7]  = HR 8  = ID[5]
-    //   values[8]  = HR 9  = ID[6]
-    //   values[9]  = HR 10 = ID[7]
-    //   values[10] = HR 11 = ID[8]
-    //   values[11] = HR 12 = ID[9]
-    //   ...
-    //   values[16] = HR 17 = Type de tag lu
-    // ----------------------------------------------------------------
+    // ------------------------------------------------------------------
+    // Extraction de l'ID de la carte depuis les registres
+    // ------------------------------------------------------------------
+    //
+    // D'après ton dump avec une carte :
+    //   [5]=0x00d8  [6]=0x0035  [7]=0x002a  [8]=0x00dc
+    //
+    // Cela donne l'UID : D8 35 2A DC (4 octets = Mifare Classic)
+    //
+    // Le registre [1] (ID_LEN) vaut 0 chez toi, ce qui est bizarre.
+    // La doc dit qu'il devrait contenir le nombre d'octets de l'ID.
+    // Peut-être que ton lecteur ne remplit pas ce champ en mode Autonomic.
+    //
+    // SOLUTION : on ne se fie PAS à ID_LEN. On regarde directement
+    // les registres 2 à 11 (indices dans le vecteur) et on prend
+    // tous les octets non-nuls consécutifs comme étant l'ID.
+    // ------------------------------------------------------------------
 
-    quint16 newIdFlag = values[0];  // 1 = nouveau tag détecté
-    quint16 idLen = values[1];  // nombre d'octets de l'ID
-    quint16 tagType = values[16]; // 0=aucun, 1=inconnu, 2=user, 3=master
+    // Extraire l'ID (registres index 2 à 11 = HR 3 à HR 12)
+    QString cardId = extraireCardId(values);
 
-    if (newIdFlag == 1) {
-        // ============================================================
-        // NOUVELLE CARTE DÉTECTÉE !
-        // ============================================================
+    // Le type de tag est dans le registre index 16 (HR 17 doc)
+    quint16 tagType = values[16];
 
-        // Sécurité sur la longueur
-        if (idLen == 0 || idLen > 10) {
-            log(QString("Carte détectée mais longueur ID invalide : %1").arg(idLen));
-            resetReadFlag();
-            return;
-        }
+    // ------------------------------------------------------------------
+    // Détection d'une nouvelle carte
+    // ------------------------------------------------------------------
+    // On compare l'ID actuel avec le dernier ID connu.
+    // Si c'est différent ET non-vide → nouvelle carte !
+    // ------------------------------------------------------------------
 
-        // Construction du UID en hexadécimal
-        // Les octets de l'ID sont dans values[2] à values[2 + idLen - 1]
-        QString cardId = formaterCardId(values, 2, idLen);
+    if (!cardId.isEmpty() && cardId != dernierCardId)
+    {
+        dernierCardId = cardId;
         QString typeStr = tagTypeToString(tagType);
 
         // Mise à jour de l'affichage
         labelCardId->setText(cardId);
-        labelIdLen->setText(QString("%1 octets").arg(idLen));
         labelTagType->setText(typeStr);
 
-        log(QString("CARTE LUE : UID = %1 | Longueur = %2 | Type = %3")
-            .arg(cardId)
-            .arg(idLen)
-            .arg(typeStr));
-
-        // Reset du flag pour permettre la lecture suivante
-        resetReadFlag();
-    }
-    // Si newIdFlag == 0, pas de nouvelle carte → on ne fait rien, le timer relancera la lecture.
-}
-
-void TestRfidLecteur::onWriteSingleWordDone(bool writeSuccess, quint16 wordAddress, quint16 wordValue)
-{
-    if (wordAddress == HR_NEW_ID_FLAG) {
-        if (writeSuccess) {
-            log("Flag de lecture remis à zéro. Prêt pour la prochaine carte.");
-        }
-        else {
-            log("ERREUR : échec du reset du flag de lecture !");
-        }
+        log(QString("CARTE DETECTEE : %1  (type: %2)").arg(cardId, typeStr));
     }
 }
 
 // ============================================================================
-//  ÉVÉNEMENTS SOCKET TCP
+//  EXTRACTION DE L'ID DEPUIS LES REGISTRES
+// ============================================================================
+
+QString TestRfidLecteur::extraireCardId(const QVector<quint16>& values)
+{
+    // Les octets de l'ID sont dans les registres d'index 2 à 11
+    // (correspondant à HR 3 - HR 12 dans la doc Inveo).
+    // Chaque registre contient 1 octet dans ses bits de poids faible (0x00XX).
+    //
+    // On prend TOUS les octets de l'index 2 à 11 qui ne sont pas zéro,
+    // pour construire l'UID en hexadécimal.
+    //
+    // Exemple : si values[2..11] = {0, 0, 0, 0xD8, 0x35, 0x2A, 0xDC, 0, 0, 0}
+    //           → on prend les index 5,6,7,8 relatifs au vecteur complet
+    //           → mais ici c'est l'index 2+3=5 etc.
+    //
+    // MAIS d'après ton dump, les octets de l'ID commencent à l'index 5
+    // du vecteur (pas à l'index 2). Cela signifie que dans TON lecteur,
+    // l'ID commence peut-être au registre HR 6 (index 5 en 0-based)
+    // au lieu de HR 3 (index 2).
+    //
+    // Pour être robuste, on scanne les index 2 à 11 et on prend
+    // la première séquence d'octets non-nuls consécutifs.
+
+    int debut = -1;
+    int fin = -1;
+
+    // Trouver le premier octet non-nul entre index 2 et 11
+    for (int i = 2; i <= 11 && i < values.size(); i++)
+    {
+        quint8 octet = static_cast<quint8>(values[i] & 0xFF);
+        if (octet != 0) {
+            if (debut == -1) debut = i;
+            fin = i;
+        }
+        else {
+            // Si on avait déjà commencé, on s'arrête
+            if (debut != -1) break;
+        }
+    }
+
+    // Si rien trouvé, pas de carte
+    if (debut == -1)
+        return QString();
+
+    // Construire l'UID hex
+    QString uid;
+    for (int i = debut; i <= fin; i++) {
+        quint8 octet = static_cast<quint8>(values[i] & 0xFF);
+        uid += QString("%1").arg(octet, 2, 16, QChar('0')).toUpper();
+    }
+
+    return uid;
+}
+
+// ============================================================================
+//  SOCKET TCP
 // ============================================================================
 
 void TestRfidLecteur::onSocketConnected()
 {
     isConnected = true;
-    updateEtatBoutons();
-    labelStatutConnexion->setText("Connecté");
-    labelStatutConnexion->setStyleSheet("color: green; font-weight: bold;");
-    log(QString("Connecté au lecteur RFID (%1:%2).")
-        .arg(lineEditIp->text())
-        .arg(spinBoxPort->value()));
+    updateBoutons();
+    labelStatut->setText("Connecté");
+    labelStatut->setStyleSheet("color: green; font-weight: bold; font-size: 13px;");
+    log(QString("Connecté à %1").arg(lineEditIp->text()));
+    log("Cliquez sur 'Surveiller les badges' puis présentez une carte.");
 }
 
 void TestRfidLecteur::onSocketDisconnected()
 {
-    arreterPolling();
+    arreterSurveillance();
     isConnected = false;
-    updateEtatBoutons();
-    labelStatutConnexion->setText("Déconnecté");
-    labelStatutConnexion->setStyleSheet("color: red; font-weight: bold;");
-    log("Connexion TCP perdue.");
+    updateBoutons();
+    labelStatut->setText("Déconnecté");
+    labelStatut->setStyleSheet("color: red; font-weight: bold; font-size: 13px;");
+    log("Connexion perdue !");
 }
 
 void TestRfidLecteur::onSocketError(QAbstractSocket::SocketError socketError)
 {
     Q_UNUSED(socketError);
+    QString err = modbusClient ? modbusClient->errorString() : "?";
+    log(QString("Erreur : %1").arg(err));
 
-    QString errMsg = modbusClient ? modbusClient->errorString() : "Erreur inconnue";
-    log(QString("ERREUR SOCKET : %1").arg(errMsg));
-
-    // Si on n'était pas encore connecté, on nettoie
     if (!isConnected && modbusClient) {
         modbusClient->deleteLater();
         modbusClient = nullptr;
     }
-    updateEtatBoutons();
+    updateBoutons();
 }
 
 // ============================================================================
 //  UTILITAIRES
 // ============================================================================
-
-QString TestRfidLecteur::formaterCardId(const QVector<quint16>& values, int startIndex, int idLen)
-{
-    // Chaque registre contient 1 octet de l'ID (dans les 8 bits de poids faible).
-    // On les formate en hexadécimal, 2 caractères par octet.
-    QString result;
-    for (int i = 0; i < idLen && (startIndex + i) < values.size(); i++) {
-        quint8 byte = static_cast<quint8>(values[startIndex + i] & 0xFF);
-        result += QString("%1").arg(byte, 2, 16, QChar('0')).toUpper();
-    }
-    return result;
-}
 
 QString TestRfidLecteur::tagTypeToString(quint16 tagType)
 {
@@ -485,30 +424,24 @@ QString TestRfidLecteur::tagTypeToString(quint16 tagType)
     case 1:  return "Inconnu (non enregistré)";
     case 2:  return "Utilisateur";
     case 3:  return "Master";
-    default: return QString("Inconnu (%1)").arg(tagType);
+    default: return QString("Code %1").arg(tagType);
     }
 }
 
-void TestRfidLecteur::updateEtatBoutons()
+void TestRfidLecteur::updateBoutons()
 {
-    // Bouton connexion
     btnConnecter->setText(isConnected ? "Déconnecter" : "Connecter");
-
-    // Champs de connexion : désactivés quand connecté
     lineEditIp->setEnabled(!isConnected);
     spinBoxPort->setEnabled(!isConnected);
     spinBoxUnitId->setEnabled(!isConnected);
 
-    // Boutons polling et reset : actifs seulement si connecté
-    btnPolling->setEnabled(isConnected);
-    btnPolling->setText(isPolling ? "Arrêter le polling" : "Démarrer le polling");
-    btnResetFlag->setEnabled(isConnected);
+    btnSurveiller->setEnabled(isConnected);
+    btnSurveiller->setText(isSurveillance ? "Arrêter la surveillance" : "Surveiller les badges");
 }
 
 void TestRfidLecteur::log(const QString& message)
 {
     if (!textEditLog) return;
-
-    QString timestamp = QDateTime::currentDateTime().toString("hh:mm:ss");
-    textEditLog->append(QString("[%1] %2").arg(timestamp, message));
+    QString ts = QDateTime::currentDateTime().toString("hh:mm:ss");
+    textEditLog->append(QString("[%1] %2").arg(ts, message));
 }
