@@ -5,7 +5,7 @@ QT_modules_test_SMS::QT_modules_test_SMS(QWidget *parent)
 {
     ui.setupUi(this);
     smsAlertNotifierStrategy.sendAlert("Alerte : une intrusion a ete detectee, le systeme d'alarme s'est active.");
-    mailAlertNotifierStrategy.sendAlert("Alerte : intrusion detectee !");
+    mailAlertNotifierStrategy.sendAlert("Alerte : une intrusion a ete detectee, le systeme d'alarme s'est active.");
 }
 
 QT_modules_test_SMS::~QT_modules_test_SMS()
