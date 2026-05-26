@@ -38,7 +38,7 @@ void MailAlertNotifierStrategy::sendAlert(const std::string& message)
 {
     CURL* curl = curl_easy_init();
     if (!curl) {
-        std::cerr << "[MAIL] Erreur : impossible d'initialiser curl" << std::endl;
+        std::cerr << "Erreur : impossible d'initialiser curl" << std::endl;
         return;
     }
 
@@ -64,12 +64,12 @@ void MailAlertNotifierStrategy::sendAlert(const std::string& message)
     curl_easy_setopt(curl, CURLOPT_MAIL_FROM, m_from.c_str());
     curl_easy_setopt(curl, CURLOPT_MAIL_RCPT, recipients);
     curl_easy_setopt(curl, CURLOPT_USE_SSL, (long)CURLUSESSL_ALL);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);  // Désactivé pour simplifier, à activer en prod
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);  
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, payloadSource);
     curl_easy_setopt(curl, CURLOPT_READDATA, &uploadCtx);
     curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);  // Mettre à 1L pour déboguer
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);  
 
     CURLcode res = curl_easy_perform(curl);
 

@@ -55,7 +55,7 @@ bool SMSAlertNotifierStrategy::sendAlert(QString description)
     QString contentStr = "{\"message\":\"" + description + "\",\"noStopClause\":true,\"receivers\":[\"+33781850278\"],\"senderForResponse\":true}";
     QByteArray content(contentStr.toUtf8());
 
-	//manager->post(request, content);  // Pour éviter de dépenser des crédits :D
+	//manager->post(request, content);  // Pour éviter de dépenser des crédits 
     return false;
 }
 

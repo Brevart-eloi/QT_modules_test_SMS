@@ -95,10 +95,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AlarmNotifierStrategy.cpp" />
+    <ClCompile Include="AlertNotifier.cpp" />
     <ClCompile Include="MailAlertNotifierStrategy.cpp" />
     <ClCompile Include="qmodbustcpclient.cpp" />
     <ClCompile Include="SMSAlertNotifierStrategy.cpp" />
     <ClInclude Include="alarmcore_global.h" />
+    <QtMoc Include="AlertNotifier.h" />
     <ClInclude Include="MailAlertNotifierStrategy.h" />
     <QtMoc Include="qmodbustcpclient.h" />
     <QtMoc Include="AlarmNotifierStrategy.h" />

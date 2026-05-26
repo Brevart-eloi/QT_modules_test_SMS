@@ -49,6 +49,9 @@
     <ClCompile Include="MailAlertNotifierStrategy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AlertNotifier.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="AlarmNotifierStrategy.h">
@@ -58,6 +61,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="qmodbustcpclient.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="AlertNotifier.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
