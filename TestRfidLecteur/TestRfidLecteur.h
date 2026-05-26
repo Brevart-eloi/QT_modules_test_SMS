@@ -4,6 +4,9 @@
 #include <QWidget>
 #include <QTimer>
 #include <QVector>
+
+#include <QAbstractSocket>
+
 #include "qmodbustcpclient.h"
 
 class QPushButton;
@@ -19,6 +22,9 @@ class TestRfidLecteur : public QWidget
 public:
     explicit TestRfidLecteur(QWidget* parent = nullptr);
     ~TestRfidLecteur();
+
+signals:
+	void badgeDetected(const QString& uid);
 
 private slots:
     // Boutons
@@ -57,7 +63,7 @@ private:
     bool isConnected;
     bool isSurveillance;
 
-    // Dernière carte connue (pour détecter une NOUVELLE carte)
+    // la dernière carte connuz
     QString dernierCardId;
 
     // === MÉTHODES ===
@@ -66,10 +72,14 @@ private:
     void demarrerSurveillance();
     void arreterSurveillance();
     void lireRegistres();
+
     QString extraireCardId(const QVector<quint16>& values);
+    
+    QString registersToDebugString(const QVector<quint16>& values);
+
     QString tagTypeToString(quint16 tagType);
     void updateBoutons();
     void log(const QString& message);
 };
 
-#endif // TESTRFIDLECTEUR_H
+#endif

@@ -11,10 +11,8 @@
 #include <QHBoxLayout>
 #include <QFormLayout>
 #include <QGroupBox>
-
-// ============================================================================
+ 
 //  CONSTRUCTEUR
-// ============================================================================
 
 TestRfidLecteur::TestRfidLecteur(QWidget* parent)
     : QWidget(parent),
@@ -118,9 +116,9 @@ TestRfidLecteur::~TestRfidLecteur()
     }
 }
 
-// ============================================================================
+
 //  BOUTONS
-// ============================================================================
+ 
 
 void TestRfidLecteur::onBtnConnecterClicked()
 {
@@ -138,9 +136,9 @@ void TestRfidLecteur::onBtnSurveillerClicked()
         arreterSurveillance();
 }
 
-// ============================================================================
+// 
 //  CONNEXION
-// ============================================================================
+// 
 
 void TestRfidLecteur::connecter()
 {
@@ -216,7 +214,7 @@ void TestRfidLecteur::demarrerSurveillance()
 {
     if (!isConnected || !modbusClient) return;
 
-    dernierCardId = "";  // On oublie l'ancienne carte
+    dernierCardId = "";
     isSurveillance = true;
     pollTimer->start();
     updateBoutons();
@@ -239,9 +237,7 @@ void TestRfidLecteur::onPollTimerTimeout()
     lireRegistres();
 }
 
-// ============================================================================
 //  LECTURE MODBUS
-// ============================================================================
 
 void TestRfidLecteur::lireRegistres()
 {
@@ -267,9 +263,7 @@ void TestRfidLecteur::lireRegistres()
     modbusClient->readMultipleHoldingRegistersFC3(0, 17);
 }
 
-// ============================================================================
-//  RÉPONSE MODBUS - C'est ici que tout se passe !
-// ============================================================================
+//  RÉPONSE MODBUS 
 
 void TestRfidLecteur::onHoldingRegistersReceived(quint16 startAddress, QVector<quint16> values)
 {
@@ -317,12 +311,22 @@ void TestRfidLecteur::onHoldingRegistersReceived(quint16 startAddress, QVector<q
         labelTagType->setText(typeStr);
 
         log(QString("CARTE DETECTEE : %1  (type: %2)").arg(cardId, typeStr));
+
+        // Son du lecteur selon le type de carte
+        if (tagType == 2 || tagType == 3) {
+            // Carte connue (User ou Master) → son Accept (Coil 15)
+            modbusClient->forceSingleCoilFC5(1011, true);
+        }
+        else {
+            // Carte inconnue → son Reject (Coil 16)
+            modbusClient->forceSingleCoilFC5(1012, true);
+        }
     }
 }
 
-// ============================================================================
+// 
 //  EXTRACTION DE L'ID DEPUIS LES REGISTRES
-// ============================================================================
+// 
 
 QString TestRfidLecteur::extraireCardId(const QVector<quint16>& values)
 {
@@ -376,9 +380,9 @@ QString TestRfidLecteur::extraireCardId(const QVector<quint16>& values)
     return uid;
 }
 
-// ============================================================================
+// 
 //  SOCKET TCP
-// ============================================================================
+// 
 
 void TestRfidLecteur::onSocketConnected()
 {
@@ -413,9 +417,9 @@ void TestRfidLecteur::onSocketError(QAbstractSocket::SocketError socketError)
     updateBoutons();
 }
 
-// ============================================================================
+// 
 //  UTILITAIRES
-// ============================================================================
+// 
 
 QString TestRfidLecteur::tagTypeToString(quint16 tagType)
 {
