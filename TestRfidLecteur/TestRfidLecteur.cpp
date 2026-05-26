@@ -136,9 +136,7 @@ void TestRfidLecteur::onBtnSurveillerClicked()
         arreterSurveillance();
 }
 
-// 
 //  CONNEXION
-// 
 
 void TestRfidLecteur::connecter()
 {
@@ -324,9 +322,7 @@ void TestRfidLecteur::onHoldingRegistersReceived(quint16 startAddress, QVector<q
     }
 }
 
-// 
 //  EXTRACTION DE L'ID DEPUIS LES REGISTRES
-// 
 
 QString TestRfidLecteur::extraireCardId(const QVector<quint16>& values)
 {
@@ -380,9 +376,7 @@ QString TestRfidLecteur::extraireCardId(const QVector<quint16>& values)
     return uid;
 }
 
-// 
 //  SOCKET TCP
-// 
 
 void TestRfidLecteur::onSocketConnected()
 {
@@ -417,9 +411,7 @@ void TestRfidLecteur::onSocketError(QAbstractSocket::SocketError socketError)
     updateBoutons();
 }
 
-// 
-//  UTILITAIRES
-// 
+//  UTILITAIRE
 
 QString TestRfidLecteur::tagTypeToString(quint16 tagType)
 {

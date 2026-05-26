@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>709</width>
+    <height>509</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,10 +17,10 @@
    <widget class="QListWidget" name="listWidget">
     <property name="geometry">
      <rect>
-      <x>290</x>
-      <y>30</y>
-      <width>256</width>
-      <height>192</height>
+      <x>270</x>
+      <y>230</y>
+      <width>321</width>
+      <height>191</height>
      </rect>
     </property>
     <property name="currentRow">
@@ -30,10 +30,10 @@
    <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>30</y>
-      <width>251</width>
-      <height>83</height>
+      <x>230</x>
+      <y>20</y>
+      <width>421</width>
+      <height>191</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -114,6 +114,117 @@
      <item>
       <layout class="QHBoxLayout" name="FlashCiel1HorizontalLayout_2">
        <item>
+        <widget class="QLabel" name="FlashPHLabel">
+         <property name="text">
+          <string>Flash PH :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="FlashPHOn">
+         <property name="text">
+          <string>ON</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>7</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="FlashPHOff">
+         <property name="text">
+          <string>OFF</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>7</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="FlashCiel1HorizontalLayout_3">
+       <item>
+        <widget class="QLabel" name="SireneLab1Label">
+         <property name="text">
+          <string>Sirène Labo 1 :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="SireneLab1On">
+         <property name="text">
+          <string>ON</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>2</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="SireneLab1Off">
+         <property name="text">
+          <string>OFF</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>2</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="FlashCiel1HorizontalLayout_4">
+       <item>
+        <widget class="QLabel" name="SireneLab2Label">
+         <property name="text">
+          <string>Sirène Labo 2 :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="SireneLab2On">
+         <property name="text">
+          <string>ON</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>4</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="SireneLab2Off">
+         <property name="text">
+          <string>OFF</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>4</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="FlashCiel1HorizontalLayout_5">
+       <item>
         <widget class="QLabel" name="SirenePHLabel">
          <property name="text">
           <string>Sirène PH :</string>
@@ -148,6 +259,43 @@
        </item>
       </layout>
      </item>
+     <item>
+      <layout class="QHBoxLayout" name="FlashCiel1HorizontalLayout_6">
+       <item>
+        <widget class="QLabel" name="GacheLabel">
+         <property name="text">
+          <string>Gâche électrique :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="GacheOn">
+         <property name="text">
+          <string>ON</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>0</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="GacheOff">
+         <property name="text">
+          <string>OFF</string>
+         </property>
+         <property name="CoilAdress" stdset="0">
+          <UInt>0</UInt>
+         </property>
+         <property name="ValueToWrite" stdset="0">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -156,8 +304,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>600</width>
-     <height>20</height>
+     <width>709</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>

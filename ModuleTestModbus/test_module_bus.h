@@ -3,6 +3,7 @@
 #include <QtWidgets/QMainWindow>
 #include "ui_test_module_bus.h"
 #include <qmodbustcpclient.h>
+#include <QDateTime>
 
 class test_module_bus : public QMainWindow
 {
