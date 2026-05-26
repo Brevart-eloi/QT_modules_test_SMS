@@ -14,7 +14,7 @@ SMSAlertNotifierStrategy::SMSAlertNotifierStrategy(QObject* parent)
 }
 
 
-
+// Génération de la signature demandée par l'API OVH
 QString SMSAlertNotifierStrategy::getSignature(QString AS, QString CK, QString method, QString query, QString body, QString tstamp) {
     QString toHash = AS + "+" + CK + "+" + method + "+" + query + "+" + body + "+" + tstamp;
     QByteArray hashResult = QCryptographicHash::hash(toHash.toUtf8(), QCryptographicHash::Sha1);
@@ -26,13 +26,12 @@ QString SMSAlertNotifierStrategy::getSignature(QString AS, QString CK, QString m
 
 bool SMSAlertNotifierStrategy::sendAlert(QString description)
 {
+    // Clés de l'application OVH
     QString AK = "e18db9c343895221";
     QString AS = "82fdd73235d02eb89debae5014f6b2f0";
     QString CK = "d8ae1ba17d1b917f5edfab7480861d96";
     QString service = "sms-gh175099-1";
-
     QString URL = "https://eu.api.ovh.com/1.0/sms/" + service + "/jobs";
-
     QString method = "POST"; 
     QString fullUrl = URL; 
     QString body = "{\"message\":\"" + description + "\",\"noStopClause\":true,\"receivers\":[\"+33781850278\"],\"senderForResponse\":true}"; 
@@ -41,7 +40,7 @@ bool SMSAlertNotifierStrategy::sendAlert(QString description)
     QString signature = getSignature(AS, CK, method, fullUrl, body, TSTAMP);
 
 	qDebug() << "SMSAlertNotifierStrategy::sendAlert: " << description;
-
+    // Préparation de la requête HTTP 
     QNetworkRequest request = QNetworkRequest(QUrl(URL));
 	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 	request.setRawHeader("X-Ovh-Application", AK.toUtf8());

@@ -101,7 +101,7 @@
     <ClCompile Include="SMSAlertNotifierStrategy.cpp" />
     <ClInclude Include="alarmcore_global.h" />
     <QtMoc Include="AlertNotifier.h" />
-    <ClInclude Include="MailAlertNotifierStrategy.h" />
+    <QtMoc Include="MailAlertNotifierStrategy.h" />
     <QtMoc Include="qmodbustcpclient.h" />
     <QtMoc Include="AlarmNotifierStrategy.h" />
     <QtMoc Include="SMSAlertNotifierStrategy.h" />

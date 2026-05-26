@@ -1,14 +1,19 @@
 #pragma once
 #include "alarmcore_global.h"
+#include "AlarmNotifierStrategy.h" 
 #include <string>
 #include <curl/curl.h>
 
-class ALARMCORE_EXPORT MailAlertNotifierStrategy
+class ALARMCORE_EXPORT MailAlertNotifierStrategy : public AlarmNotifierStrategy
 {
+    Q_OBJECT 
+
 public:
-    MailAlertNotifierStrategy();
+    MailAlertNotifierStrategy(QObject* parent = nullptr); 
     ~MailAlertNotifierStrategy();
-    void sendAlert(const std::string& message);
+
+    bool sendAlert(QString description) override; 
+
 private:
     const std::string m_smtpServer = "smtps://smtp.gmail.com:465";
     const std::string m_username = "alertes.labo@gmail.com";
