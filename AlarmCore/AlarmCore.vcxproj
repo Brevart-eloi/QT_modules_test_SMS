@@ -96,10 +96,17 @@
   <ItemGroup>
     <ClCompile Include="AlarmNotifierStrategy.cpp" />
     <ClCompile Include="AlertNotifier.cpp" />
+    <ClCompile Include="BadgeAccessChecker.cpp" />
+    <ClCompile Include="LaboMonitoring.cpp" />
     <ClCompile Include="MailAlertNotifierStrategy.cpp" />
     <ClCompile Include="qmodbustcpclient.cpp" />
+    <ClCompile Include="RfidHttpServer.cpp" />
     <ClCompile Include="SMSAlertNotifierStrategy.cpp" />
     <ClInclude Include="alarmcore_global.h" />
+    <QtMoc Include="LaboMonitoring.h" />
+    <QtMoc Include="RfidHttpServer.h" />
+    <QtMoc Include="BadgeAccessChecker.h" />
+    <QtMoc Include="LaboAlertEventListener.h" />
     <QtMoc Include="AlertNotifier.h" />
     <QtMoc Include="MailAlertNotifierStrategy.h" />
     <QtMoc Include="qmodbustcpclient.h" />

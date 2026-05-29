@@ -49,6 +49,15 @@
     <ClCompile Include="AlertNotifier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BadgeAccessChecker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RfidHttpServer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LaboMonitoring.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="AlarmNotifierStrategy.h">
@@ -64,6 +73,18 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="MailAlertNotifierStrategy.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="BadgeAccessChecker.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="RfidHttpServer.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="LaboMonitoring.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="LaboAlertEventListener.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
