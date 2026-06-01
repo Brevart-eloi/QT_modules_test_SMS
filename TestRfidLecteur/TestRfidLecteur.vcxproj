@@ -113,9 +113,9 @@
     <QtRcc Include="TestRfidLecteur.qrc" />
     <QtUic Include="TestRfidLecteur.ui" />
     <QtMoc Include="TestRfidLecteur.h" />
-    <ClCompile Include="LaboMonitoringTestWidget.cpp" />
-    <ClCompile Include="TestRfidLecteur.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SurveillanceTestWidget.cpp" />
+    <ClCompile Include="TestRfidLecteur.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AlarmCore\AlarmCore.vcxproj">
@@ -123,7 +123,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="LaboMonitoringTestWidget.h" />
+    <QtMoc Include="SurveillanceTestWidget.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

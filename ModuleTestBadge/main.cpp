@@ -1,11 +1,11 @@
 #include <QApplication>
-#include "SurveillanceTestWidget.h"
+#include "BadgeTestWidget.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    SurveillanceTestWidget w;
+    BadgeTestWidget w;
     w.show();
 
     return app.exec();

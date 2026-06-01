@@ -11,6 +11,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModuleTestModbus", "ModuleT
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestRfidLecteur", "TestRfidLecteur\TestRfidLecteur.vcxproj", "{F8E11281-F673-4CAD-A2B7-2AC2AFED389D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModuleTestBadge", "ModuleTestBadge\ModuleTestBadge.vcxproj", "{8F4B1F67-F3DA-430C-934C-E68F8B5E6528}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModuleTestIntegration", "ModuleTestIntegration\ModuleTestIntegration.vcxproj", "{A114BE86-69B0-427D-917F-91BB84589D96}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -33,6 +37,14 @@ Global
 		{F8E11281-F673-4CAD-A2B7-2AC2AFED389D}.Debug|x64.Build.0 = Debug|x64
 		{F8E11281-F673-4CAD-A2B7-2AC2AFED389D}.Release|x64.ActiveCfg = Release|x64
 		{F8E11281-F673-4CAD-A2B7-2AC2AFED389D}.Release|x64.Build.0 = Release|x64
+		{8F4B1F67-F3DA-430C-934C-E68F8B5E6528}.Debug|x64.ActiveCfg = Debug|x64
+		{8F4B1F67-F3DA-430C-934C-E68F8B5E6528}.Debug|x64.Build.0 = Debug|x64
+		{8F4B1F67-F3DA-430C-934C-E68F8B5E6528}.Release|x64.ActiveCfg = Release|x64
+		{8F4B1F67-F3DA-430C-934C-E68F8B5E6528}.Release|x64.Build.0 = Release|x64
+		{A114BE86-69B0-427D-917F-91BB84589D96}.Debug|x64.ActiveCfg = Debug|x64
+		{A114BE86-69B0-427D-917F-91BB84589D96}.Debug|x64.Build.0 = Debug|x64
+		{A114BE86-69B0-427D-917F-91BB84589D96}.Release|x64.ActiveCfg = Release|x64
+		{A114BE86-69B0-427D-917F-91BB84589D96}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
