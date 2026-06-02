@@ -1,0 +1,460 @@
+{
+  "info": {
+    "name": "LaboMonitoring — Tests API",
+    "_postman_id": "labo-monitoring-e2-collection",
+    "description": "Collection de tests pour les deux serveurs HTTP de LaboMonitoring.\n\n- Port 80  : API Surveillance (arm / disarm / status) — pour l'Étudiant 1\n- Port 8080 : Serveur RFID (simulation badge Arduino)\n\nChanger la variable {{host}} selon l'environnement :\n  - Dev local    : localhost\n  - Labo réseau  : 172.29.x.x (IP du PC qui exécute LaboMonitoring)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "host",
+      "value": "localhost",
+      "description": "IP ou hostname du PC qui fait tourner LaboMonitoring"
+    },
+    {
+      "key": "port_alarme",
+      "value": "80",
+      "description": "Port de l'API Surveillance (SurveillanceHttpApi)"
+    },
+    {
+      "key": "port_rfid",
+      "value": "8080",
+      "description": "Port du serveur RFID (Arduino badge reader)"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔴 API Surveillance — Port 80",
+      "description": "Routes gérées par SurveillanceHttpApi.\nCes routes sont appelées par le site web de l'Étudiant 1 pour armer / désarmer l'alarme.",
+      "item": [
+        {
+          "name": "1 — GET /surveillance/status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{host}}:{{port_alarme}}/surveillance/status",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_alarme}}",
+              "path": ["surveillance", "status"]
+            },
+            "description": "Retourne l'état complet du système.\n\nRéponse attendue :\n{\n  \"ok\": true,\n  \"armed\": false,\n  \"alarm_active\": false,\n  \"door_open\": false,\n  \"window_open\": false\n}\n\n→ Vérifier dans l'appli que le label ARMÉE / DÉSARMÉE correspond."
+          },
+          "response": [
+            {
+              "name": "Système désarmé (état initial)",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "http://localhost:80/surveillance/status"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"ok\": true,\n  \"armed\": false,\n  \"alarm_active\": false,\n  \"door_open\": false,\n  \"window_open\": false\n}"
+            },
+            {
+              "name": "Système armé",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "http://localhost:80/surveillance/status"
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"ok\": true,\n  \"armed\": true,\n  \"alarm_active\": false,\n  \"door_open\": false,\n  \"window_open\": false\n}"
+            }
+          ]
+        },
+        {
+          "name": "2 — POST /surveillance/arm",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://{{host}}:{{port_alarme}}/surveillance/arm",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_alarme}}",
+              "path": ["surveillance", "arm"]
+            },
+            "description": "Arme la surveillance.\nPas de body requis.\n\nRéponse attendue :\n{\n  \"ok\": true,\n  \"armed\": true,\n  ...\n}\n\n→ Dans l'appli : label passe à \"ARMÉE\" (rouge).\n→ Si un capteur s'ouvre ensuite, l'alarme se déclenche."
+          },
+          "response": [
+            {
+              "name": "Armement OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"ok\": true,\n  \"armed\": true,\n  \"alarm_active\": false,\n  \"door_open\": false,\n  \"window_open\": false\n}"
+            }
+          ]
+        },
+        {
+          "name": "3 — POST /surveillance/disarm",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://{{host}}:{{port_alarme}}/surveillance/disarm",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_alarme}}",
+              "path": ["surveillance", "disarm"]
+            },
+            "description": "Désarme la surveillance.\nSi une alarme est active, elle est immédiatement coupée (sirènes + flash).\nPas de body requis.\n\nRéponse attendue :\n{\n  \"ok\": true,\n  \"armed\": false,\n  ...\n}\n\n→ Dans l'appli : label passe à \"DÉSARMÉE\" (gris).\n→ Les sorties DO (sirènes, flash) passent à OFF."
+          },
+          "response": [
+            {
+              "name": "Désarmement OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"ok\": true,\n  \"armed\": false,\n  \"alarm_active\": false,\n  \"door_open\": false,\n  \"window_open\": false\n}"
+            }
+          ]
+        },
+        {
+          "name": "4 — GET /route-inconnue (→ 404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{host}}:{{port_alarme}}/inconnu",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_alarme}}",
+              "path": ["inconnu"]
+            },
+            "description": "Teste la gestion des routes inconnues.\n\nRéponse attendue : HTTP 404\n{\n  \"ok\": false,\n  \"error\": \"endpoint inconnu\"\n}"
+          },
+          "response": [
+            {
+              "name": "404 route inconnue",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"ok\": false,\n  \"error\": \"endpoint inconnu\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🟡 Serveur RFID — Port 8080",
+      "description": "Simule les requêtes HTTP envoyées par les Arduino (lecteurs badges).\nLes Arduino envoient un POST avec le champ \"card_id\" ou \"uid\" dans le body JSON.\n\nL'appli vérifie ensuite l'autorisation via l'adjudicator (172.29.19.193).",
+      "item": [
+        {
+          "name": "5 — Badge autorisé (champ card_id)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"card_id\": \"A1B2C3D4\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://{{host}}:{{port_rfid}}/rfid/scan",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_rfid}}",
+              "path": ["rfid", "scan"]
+            },
+            "description": "Simule un badge présenté sur le Lecteur 1 (172.29.19.200).\nUtilise le champ \"card_id\" (format Arduino principal).\n\nRéponse immédiate de l'appli : {\"ok\":true}\nEnsuite l'appli contacte l'adjudicator GET /api/rfid/check/A1B2C3D4.\n\n→ Si badge autorisé dans la BDD :\n   - Label \"Dernier badge\" : A1B2C3D4 — Nom — AUTORISÉ\n   - Gâche DO0 s'ouvre pendant 2 secondes\n   - Log : [A1B2C3D4] (Lecteur inconnu) ACCES AUTORISE\n\n→ Si badge inconnu :\n   - Label : A1B2C3D4 — inconnu — REFUSÉ\n   - Gâche reste verrouillée"
+          },
+          "response": [
+            {
+              "name": "Réponse immédiate (toujours 200)",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"ok\":true}"
+            }
+          ]
+        },
+        {
+          "name": "6 — Badge autorisé (champ uid)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"uid\": \"04:AB:12:CD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://{{host}}:{{port_rfid}}/rfid/scan",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_rfid}}",
+              "path": ["rfid", "scan"]
+            },
+            "description": "Même requête mais avec le champ \"uid\" (format alternatif compatible).\nL'appli normalise le UID en majuscules : \"04:AB:12:CD\".\n\nL'appli supporte les deux champs : card_id est prioritaire, uid est le fallback."
+          },
+          "response": [
+            {
+              "name": "Réponse immédiate",
+              "status": "OK",
+              "code": 200,
+              "body": "{\"ok\":true}"
+            }
+          ]
+        },
+        {
+          "name": "7 — Badge refusé (UID inconnu)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"card_id\": \"DEADBEEF\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://{{host}}:{{port_rfid}}/rfid/scan",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_rfid}}",
+              "path": ["rfid", "scan"]
+            },
+            "description": "Badge non enregistré dans la BDD adjudicator.\n\nRéponse immédiate de l'appli : {\"ok\":true} (elle répond AVANT la vérification)\n\n→ Label : DEADBEEF — inconnu — REFUSÉ (rouge)\n→ Gâche reste verrouillée\n→ Log : [DEADBEEF] (Lecteur inconnu) ACCES REFUSE — inconnu — non autorise"
+          }
+        },
+        {
+          "name": "8 — Body vide (cas d'erreur)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://{{host}}:{{port_rfid}}/rfid/scan",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_rfid}}",
+              "path": ["rfid", "scan"]
+            },
+            "description": "Simule une requête malformée (aucun body).\n\nRéponse : {\"ok\":true} (l'appli répond toujours 200)\nMais dans le log : \"POST RFID recu de Lecteur inconnu — body vide.\"\nAucune vérification badge, gâche reste verrouillée."
+          }
+        },
+        {
+          "name": "9 — JSON invalide (cas d'erreur)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "ceci n'est pas du JSON",
+              "options": {
+                "raw": {
+                  "language": "text"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://{{host}}:{{port_rfid}}/rfid/scan",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_rfid}}",
+              "path": ["rfid", "scan"]
+            },
+            "description": "Simule un Arduino qui envoie des données corrompues.\n\nRéponse : {\"ok\":true}\nLog : \"POST RFID (Lecteur inconnu) — JSON invalide : ceci n'est pas du JSON\"\nGâche reste verrouillée."
+          }
+        },
+        {
+          "name": "10 — card_id absent (cas d'erreur)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"temperature\": 22.5,\n    \"sensor\": \"PIR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://{{host}}:{{port_rfid}}/rfid/scan",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_rfid}}",
+              "path": ["rfid", "scan"]
+            },
+            "description": "JSON valide mais sans champ card_id ni uid.\n\nLog : \"POST RFID (Lecteur inconnu) — card_id absent.\"\nGâche reste verrouillée."
+          }
+        }
+      ]
+    },
+    {
+      "name": "🟢 Scénario complet — Intrusion simulée",
+      "description": "Enchaîner ces requêtes dans l'ordre pour simuler un scénario réel.\nLes capteurs physiques (Modbus) sont simulés ici par le simple changement d'état arm/disarm.",
+      "item": [
+        {
+          "name": "SCÉNARIO — Étape 1 : Vérifier état initial",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{host}}:{{port_alarme}}/surveillance/status",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_alarme}}",
+              "path": ["surveillance", "status"]
+            },
+            "description": "Vérifier que le système est bien désarmé avant de commencer."
+          }
+        },
+        {
+          "name": "SCÉNARIO — Étape 2 : Armer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://{{host}}:{{port_alarme}}/surveillance/arm",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_alarme}}",
+              "path": ["surveillance", "arm"]
+            },
+            "description": "Armer le système. Vérifier dans l'appli : label \"ARMÉE\"."
+          }
+        },
+        {
+          "name": "SCÉNARIO — Étape 3 : Vérifier armement",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{host}}:{{port_alarme}}/surveillance/status",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_alarme}}",
+              "path": ["surveillance", "status"]
+            },
+            "description": "Confirmer : armed = true."
+          }
+        },
+        {
+          "name": "SCÉNARIO — Étape 4 : Badge autorisé -> gâche",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"card_id\": \"A1B2C3D4\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://{{host}}:{{port_rfid}}/rfid/scan",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_rfid}}",
+              "path": ["rfid", "scan"]
+            },
+            "description": "Présenter un badge autorisé.\n→ Gâche s'ouvre 2 secondes (DO0 ON puis OFF).\n→ Surveillance reste armée (accès autorisé ≠ désarmement)."
+          }
+        },
+        {
+          "name": "SCÉNARIO — Étape 5 : Désarmer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://{{host}}:{{port_alarme}}/surveillance/disarm",
+              "protocol": "http",
+              "host": ["{{host}}"],
+              "port": "{{port_alarme}}",
+              "path": ["surveillance", "disarm"]
+            },
+            "description": "Désarmer. Si une alarme était active, sirènes + flash coupés.\nLabel -> \"DÉSARMÉE\"."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagramme de classes — Labo Monitoring</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #eceff1;
+    padding: 28px;
+    min-height: 100vh;
+  }
+
+  header {
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-size: 1.5em;
+    color: #1a237e;
+    border-left: 5px solid #1a237e;
+    padding-left: 14px;
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    color: #607d8b;
+    font-size: 0.88em;
+    padding-left: 19px;
+  }
+
+  /* ── Légende ──────────────────────────────────────────────────── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 10px;
+    padding: 14px 18px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.10);
+    align-items: center;
+  }
+
+  .legend-title {
+    font-size: 0.82em;
+    font-weight: bold;
+    color: #455a64;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-right: 4px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.84em;
+    color: #333;
+  }
+
+  .legend-box {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    border: 2px solid;
+    flex-shrink: 0;
+  }
+
+  /* ── Zone diagramme ───────────────────────────────────────────── */
+  .diagram-wrap {
+    background: white;
+    border-radius: 10px;
+    padding: 28px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.10);
+    overflow: auto;
+  }
+
+  /* ── Note architecture ────────────────────────────────────────── */
+  .arch-note {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .arch-card {
+    flex: 1;
+    min-width: 200px;
+    background: white;
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.10);
+    border-top: 4px solid;
+    font-size: 0.83em;
+    color: #37474f;
+  }
+
+  .arch-card h3 {
+    font-size: 0.95em;
+    margin-bottom: 6px;
+    color: #212121;
+  }
+
+  .arch-card ul {
+    margin-left: 16px;
+    line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Diagramme de classes — Labo Monitoring</h1>
+  <p class="subtitle">BTS Cybersécurité / IR — Protection des laboratoires d'informatique</p>
+</header>
+
+<!-- Légende -->
+<div class="legend">
+  <span class="legend-title">Légende :</span>
+
+  <div class="legend-item">
+    <div class="legend-box" style="background:#bbdefb; border-color:#1565c0;"></div>
+    <span><strong>Étudiant 2 — Baptiste</strong> &nbsp;Alarme · Modbus · Contrôle d'accès</span>
+  </div>
+
+  <div class="legend-item">
+    <div class="legend-box" style="background:#c8e6c9; border-color:#2e7d32;"></div>
+    <span><strong>Étudiant 1</strong> &nbsp;API HTTP arm / disarm</span>
+  </div>
+
+  <div class="legend-item">
+    <div class="legend-box" style="background:#ffe0b2; border-color:#e65100;"></div>
+    <span><strong>Étudiant 3</strong> &nbsp;Notifications SMS + Mail</span>
+  </div>
+
+  <div class="legend-item">
+    <div class="legend-box" style="background:#f3e5f5; border-color:#7b1fa2;"></div>
+    <span>Interface partagée (AlarmCore)</span>
+  </div>
+
+  <div class="legend-item">
+    <div class="legend-box" style="background:#e8eaf6; border-color:#3949ab;"></div>
+    <span>Qt Framework (héritage)</span>
+  </div>
+</div>
+
+<!-- Cartes rôles -->
+<div class="arch-note">
+  <div class="arch-card" style="border-color:#1565c0;">
+    <h3>🔵 Étudiant 2 (Baptiste)</h3>
+    <ul>
+      <li><strong>LaboMonitoringWidget</strong> — application principale</li>
+      <li><strong>SurveillanceController</strong> — machine à états arm/disarm</li>
+      <li><strong>QModbusTcpClient</strong> — client Modbus TCP (PET-7050 / PET-7067)</li>
+    </ul>
+  </div>
+  <div class="arch-card" style="border-color:#2e7d32;">
+    <h3>🟢 Étudiant 1</h3>
+    <ul>
+      <li><strong>SurveillanceHttpApi</strong> — API REST arm/disarm sur port 80 pour le site web</li>
+    </ul>
+  </div>
+  <div class="arch-card" style="border-color:#e65100;">
+    <h3>🟠 Étudiant 3</h3>
+    <ul>
+      <li><strong>AlertNotifier</strong> — Observer pattern (notifie les stratégies)</li>
+      <li><strong>SMSAlertNotifierStrategy</strong> — envoi SMS</li>
+      <li><strong>MailAlertNotifierStrategy</strong> — envoi mail (libcurl / Gmail)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Diagramme -->
+<div class="diagram-wrap">
+<div class="mermaid">
+classDiagram
+  direction TB
+
+  classDef e1    fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px,color:#000
+  classDef e2    fill:#bbdefb,stroke:#1565c0,stroke-width:2px,color:#000
+  classDef e3    fill:#ffe0b2,stroke:#e65100,stroke-width:2px,color:#000
+  classDef iface fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+  classDef qt    fill:#e8eaf6,stroke:#3949ab,stroke-width:1px,color:#555
+
+  %% ── Qt base classes ──────────────────────────────────────────
+  class QObject:::qt {
+    <<Qt>>
+  }
+  class QWidget:::qt {
+    <<Qt>>
+  }
+  class QTcpSocket:::qt {
+    <<Qt>>
+  }
+
+  %% ── Interface partagée ────────────────────────────────────────
+  class LaboAlertEventListener:::iface {
+    <<interface>>
+    +onAlert(description : QString) void
+  }
+
+  %% ── Étudiant 3 — Notifications ───────────────────────────────
+  class AlarmNotifierStrategy:::e3 {
+    <<abstract>>
+    +AlarmNotifierStrategy(parent : QObject)
+    +sendAlert(description : QString) bool
+  }
+
+  class AlertNotifier:::e3 {
+    -notificationStrategies : deque~AlarmNotifierStrategy~
+    +AlertNotifier(parent : QObject)
+    +onAlert(description : QString) void
+    +addNotificationStrategy(s : AlarmNotifierStrategy) void
+    +removeNotificationStrategy(s : AlarmNotifierStrategy) void
+  }
+
+  class SMSAlertNotifierStrategy:::e3 {
+    -manager : QNetworkAccessManager
+    +SMSAlertNotifierStrategy(parent : QObject)
+    +sendAlert(description : QString) bool
+  }
+
+  class MailAlertNotifierStrategy:::e3 {
+    -m_smtpServer : string
+    -m_username : string
+    -m_to : string
+    +MailAlertNotifierStrategy(parent : QObject)
+    ~MailAlertNotifierStrategy()
+    +sendAlert(description : QString) bool
+  }
+
+  %% ── Étudiant 1 — API HTTP ─────────────────────────────────────
+  class SurveillanceHttpApi:::e1 {
+    -m_controller : SurveillanceController
+    -m_tcpServer : QTcpServer
+    +SurveillanceHttpApi(ctrl, parent)
+    +start(port : quint16) bool
+    +stop() void
+    +isListening() bool
+    +logMessage(msg : QString) signal
+  }
+
+  %% ── Étudiant 2 — Modbus ──────────────────────────────────────
+  class QModbusTcpClient:::e2 {
+    -host : QString
+    -port : quint16
+    -unitId : quint8
+    +QModbusTcpClient(host, port, unitId, parent)
+    +connectToHost() void
+    +forceSingleCoilFC5(addr : quint16, value : bool) void
+    +forceMultipleCoilsFC15(addr : quint16, values) void
+    +readMultipleInputsStatusFC2(addr : quint16, nb : quint16) void
+    +readMultipleHoldingRegistersFC3(addr, nb) void
+    +onReadMultipleInputsStatusSentence(addr, values) signal
+    +onForceSingleCoilSentence(ok, addr, value) signal
+  }
+
+  %% ── Étudiant 2 — Surveillance ────────────────────────────────
+  class SurveillanceController:::e2 {
+    -m_inputModbus : QModbusTcpClient
+    -m_outputModbus : QModbusTcpClient
+    -m_armed : bool
+    -m_alarmActive : bool
+    -m_running : bool
+    -m_listeners : QList~LaboAlertEventListener~
+    +SurveillanceController(parent : QObject)
+    +start() bool
+    +stop() void
+    +arm() void
+    +disarm() void
+    +isArmed() bool
+    +isAlarmActive() bool
+    +setInputModuleAddress(ip, port, unitId) void
+    +setOutputModuleAddress(ip, port, unitId) void
+    +addAlertEventListener(l : LaboAlertEventListener) void
+    +removeAlertEventListener(l : LaboAlertEventListener) void
+    +armedChanged(armed : bool) signal
+    +intrusionDetected(source : QString) signal
+    +logMessage(msg : QString) signal
+    -notifyAlert(description : QString) void
+    -startAlarm(source : QString) void
+    -stopAlarm() void
+  }
+
+  %% ── Étudiant 2 — Application principale ─────────────────────
+  class LaboMonitoringWidget:::e2 {
+    -m_surveillance : SurveillanceController
+    -m_httpApi : SurveillanceHttpApi
+    -m_alertNotifier : AlertNotifier
+    -m_inputModbus : QModbusTcpClient
+    -m_outputModbus : QModbusTcpClient
+    -m_rfidServer : QTcpServer
+    -m_nam : QNetworkAccessManager
+    -m_pollTimer : QTimer
+    -m_sirenTimer : QTimer
+    -m_gacheTimer : QTimer
+    -m_running : bool
+    -m_alarmActive : bool
+    -m_flashActive : bool
+    -m_intrusionAlerted : bool
+    -m_sensorOpen : bool
+    +LaboMonitoringWidget(parent : QWidget)
+    ~LaboMonitoringWidget()
+    -activateAlarm(source : QString) void
+    -stopSirens() void
+    -stopAllOutputs() void
+    -openGache() void
+    -closeGache() void
+    -handleRfidScan(uid : QString, reader : QString) void
+    -onSensorsReceived(addr : quint16, values) void
+    -onArmedChanged(armed : bool) void
+    -fetchAndApplySchedule() void
+    -applyScheduleArming() void
+    -buildUi() void
+    -log(msg : QString) void
+  }
+
+  %% ── Héritage Qt ──────────────────────────────────────────────
+  QObject    <|-- LaboAlertEventListener
+  QObject    <|-- AlarmNotifierStrategy
+  QObject    <|-- SurveillanceController
+  QObject    <|-- SurveillanceHttpApi
+  QWidget    <|-- LaboMonitoringWidget
+  QTcpSocket <|-- QModbusTcpClient
+
+  %% ── Héritage applicatif ──────────────────────────────────────
+  LaboAlertEventListener <|.. AlertNotifier : implements
+  AlarmNotifierStrategy  <|-- SMSAlertNotifierStrategy
+  AlarmNotifierStrategy  <|-- MailAlertNotifierStrategy
+
+  %% ── Composition (E2 possède) ─────────────────────────────────
+  LaboMonitoringWidget *-- SurveillanceController : m_surveillance
+  LaboMonitoringWidget *-- SurveillanceHttpApi    : m_httpApi
+  LaboMonitoringWidget *-- AlertNotifier          : m_alertNotifier
+  LaboMonitoringWidget *-- "2" QModbusTcpClient   : m_inputModbus + m_outputModbus
+
+  %% ── Composition interne SurveillanceController ───────────────
+  SurveillanceController *-- "2" QModbusTcpClient : (optionnel)
+
+  %% ── Associations ─────────────────────────────────────────────
+  SurveillanceHttpApi --> SurveillanceController  : contrôle
+
+  %% ── Pattern Observer ─────────────────────────────────────────
+  SurveillanceController o-- LaboAlertEventListener : observers
+  AlertNotifier          o-- AlarmNotifierStrategy  : strategies
+</div>
+</div>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    flowchart: { useMaxWidth: false },
+    classDiagram: { useMaxWidth: false }
+  });
+</script>
+</body>
+</html>
