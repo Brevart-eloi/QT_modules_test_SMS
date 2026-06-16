@@ -11,6 +11,7 @@ class QLabel;
 class QTextEdit;
 class QLineEdit;
 class QSpinBox;
+class QCheckBox;
 class QListWidget;
 
 /*
@@ -94,6 +95,7 @@ private:
     QSpinBox  *spinFlashCoil;
     QSpinBox  *spinDoorInput;
     QSpinBox  *spinWindowInput;
+    QCheckBox *chkInvertInputs;  // NC (Normalement Fermé) = logique inversée
 
     // ── Boutons de controle ──
     QPushButton *btnStart;

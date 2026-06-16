@@ -8,10 +8,12 @@
 #include <QTimer>
 #include <QTime>
 #include <QMap>
+#include <QDateTime>
 #include <QLabel>
 #include <QPushButton>
 #include <QTextEdit>
 #include <QCheckBox>
+#include <QColor>
 
 #include "SurveillanceController.h"
 #include "SurveillanceHttpApi.h"
@@ -69,50 +71,50 @@ public:
     ~LaboMonitoringWidget();
 
 private slots:
-    // ── Service ──────────────────────────────────────────────────────────────
+    // Service
     void onBtnStartClicked();
     void onBtnStopClicked();
 
-    // ── Alarme (manuel) ──────────────────────────────────────────────────────
+    // Alarme (manuel) 
     void onBtnArmClicked();
     void onBtnDisarmClicked();
     void onBtnResetFlashClicked();
 
-    // ── Serveur RFID (POST /rfid/scan depuis Arduino) ─────────────────────────
+    // Serveur RFID (POST /rfid/scan depuis Arduino) 
     void onRfidNewConnection();
     void onRfidClientReadyRead();
     void onRfidClientDisconnected();
 
-    // ── Adjudicator ───────────────────────────────────────────────────────────
+    // Adjudicator 
     void onAdjudicatorReply(QNetworkReply *reply);
 
-    // ── Gache ─────────────────────────────────────────────────────────────────
+    // Gache
     void onGacheTimer();
 
-    // ── Alarme : sirenes s'arretent apres 3 min, flash restent ───────────────
+    // Alarme : sirenes s'arretent apres 3 min, flash restent 
     void onSirenTimer();
 
-    // ── Modbus PET-7050 (capteurs) ────────────────────────────────────────────
+    // ── Modbus PET-7050 (capteurs) 
     void onPollTimer();
     void onInputModbusConnected();
     void onInputModbusDisconnected();
     void onSensorsReceived(quint16 startAddress, QVector<bool> values);
 
-    // ── Modbus PET-7067 (sorties) ─────────────────────────────────────────────
+    // Modbus PET-7067 (sorties) 
     void onOutputModbusConnected();
     void onOutputModbusDisconnected();
 
-    // ── Planning ──────────────────────────────────────────────────────────────
+    // Planning 
     void onScheduleTimer();
     void onScheduleReply(QNetworkReply *reply);
 
-    // ── SurveillanceController (arm/disarm via API HTTP E1) ───────────────────
+    // ── SurveillanceController (arm/disarm via API HTTP E1)
     void onArmedChanged(bool armed);
     void onSurvLog(const QString &msg);
     void onApiLog(const QString &msg);
 
 private:
-    // ── Pattern Observer ──────────────────────────────────────────────────────
+    // ── Pattern Observer 
     // SurveillanceController est configure SANS IP Modbus :
     //   - ne gere pas les capteurs ni les sorties physiques
     //   - sert uniquement de machine a etats arm/disarm pour SurveillanceHttpApi
@@ -120,12 +122,12 @@ private:
     SurveillanceHttpApi    *m_httpApi       = nullptr;
     AlertNotifier          *m_alertNotifier = nullptr;
 
-    // ── Modbus ────────────────────────────────────────────────────────────────
+    // Modbus 
     QModbusTcpClient *m_inputModbus  = nullptr; // PET-7050 — lecture capteurs
     QModbusTcpClient *m_outputModbus = nullptr; // PET-7067 — gache + flash + sirenes
     QTimer           *m_pollTimer    = nullptr; // polling capteurs 1 s
 
-    // ── Serveur RFID ──────────────────────────────────────────────────────────
+    // ── Serveur RFID 
     QTcpServer *m_rfidServer = nullptr;
     QMap<QTcpSocket *, QByteArray> m_rfidBuffers;
 
@@ -139,22 +141,27 @@ private:
     bool    m_flashActive      = false;   // flash allumes (restes apres sirenes)
     bool    m_intrusionAlerted = false;   // anti-spam SMS/mail (reset a l'armement)
 
-    // ── Capteurs (DI4..DI9, tous traites en NC) ───────────────────────────────
+    // ── Capteurs (DI4..DI9, tous traites en NC) 
     static const int     NUM_SENSORS = 6;
     static const quint16 DI_START    = 4; // premier canal (DI4)
     bool m_sensorOpen[NUM_SENSORS]   = {};
 
-    // ── Reseau ────────────────────────────────────────────────────────────────
+    // ── Timer de presence RFID 
+    // Cle : UID badge  |  Valeur : heure d'entree (lecteur exterieur .200)
+    // Efface a la sortie (lecteur interieur .201) pour afficher la duree de presence
+    QMap<QString, QDateTime> m_entryTimes;
+
+    // ── Reseau 
     QNetworkAccessManager *m_nam           = nullptr;
     QTimer                *m_scheduleTimer = nullptr;
     QTime                  m_scheduleStart;
     QTime                  m_scheduleEnd;
     bool                   m_scheduleValid = false;
 
-    // ── Etat interne ─────────────────────────────────────────────────────────
+    // ── Etat interne 
     bool m_running = false;
 
-    // ── UI ────────────────────────────────────────────────────────────────────
+    // ── UI 
     QPushButton *m_btnStart        = nullptr;
     QPushButton *m_btnStop         = nullptr;
     QPushButton *m_btnArm          = nullptr;
@@ -174,9 +181,12 @@ private:
     QLabel      *m_lblSensors[NUM_SENSORS] = {};
     QTextEdit   *m_textLog         = nullptr;
 
-    // ── Methodes ─────────────────────────────────────────────────────────────
+    // Methodes 
     void buildUi();
     void log(const QString &msg);
+    void logBadge(const QString &msg);
+    void sendDiEventToBackend(int idx, bool isOpen, bool triggered);                        
+    void appendLog(const QString &msg, const QColor &color);  
     void handleRfidScan(const QString &uid, const QString &readerName);
     void openGache();
     void closeGache();

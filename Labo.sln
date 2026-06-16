@@ -13,11 +13,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestRfidLecteur", "TestRfid
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModuleTestBadge", "ModuleTestBadge\ModuleTestBadge.vcxproj", "{8F4B1F67-F3DA-430C-934C-E68F8B5E6528}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModuleTestIntegration", "ModuleTestIntegration\ModuleTestIntegration.vcxproj", "{A114BE86-69B0-427D-917F-91BB84589D96}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModuleControlAcces", "ModuleControlAcces\ModuleControlAcces.vcxproj", "{F1A2B3C4-D5E6-F7A8-B9C0-D1E2F3A4B5C6}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LaboMonitoring", "LaboMonitoring\LaboMonitoring.vcxproj", "{B2C3D4E5-F6A7-B8C9-D0E1-F2A3B4C5D6E7}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModuleTestDroitsAcces", "ModuleTestDroitsAcces\ModuleTestDroitsAcces.vcxproj", "{D8B0F4C2-6E53-4A9F-B2D7-0C4E8F1A6B92}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,18 +43,14 @@ Global
 		{8F4B1F67-F3DA-430C-934C-E68F8B5E6528}.Debug|x64.Build.0 = Debug|x64
 		{8F4B1F67-F3DA-430C-934C-E68F8B5E6528}.Release|x64.ActiveCfg = Release|x64
 		{8F4B1F67-F3DA-430C-934C-E68F8B5E6528}.Release|x64.Build.0 = Release|x64
-		{A114BE86-69B0-427D-917F-91BB84589D96}.Debug|x64.ActiveCfg = Debug|x64
-		{A114BE86-69B0-427D-917F-91BB84589D96}.Debug|x64.Build.0 = Debug|x64
-		{A114BE86-69B0-427D-917F-91BB84589D96}.Release|x64.ActiveCfg = Release|x64
-		{A114BE86-69B0-427D-917F-91BB84589D96}.Release|x64.Build.0 = Release|x64
-		{F1A2B3C4-D5E6-F7A8-B9C0-D1E2F3A4B5C6}.Debug|x64.ActiveCfg = Debug|x64
-		{F1A2B3C4-D5E6-F7A8-B9C0-D1E2F3A4B5C6}.Debug|x64.Build.0 = Debug|x64
-		{F1A2B3C4-D5E6-F7A8-B9C0-D1E2F3A4B5C6}.Release|x64.ActiveCfg = Release|x64
-		{F1A2B3C4-D5E6-F7A8-B9C0-D1E2F3A4B5C6}.Release|x64.Build.0 = Release|x64
 		{B2C3D4E5-F6A7-B8C9-D0E1-F2A3B4C5D6E7}.Debug|x64.ActiveCfg = Debug|x64
 		{B2C3D4E5-F6A7-B8C9-D0E1-F2A3B4C5D6E7}.Debug|x64.Build.0 = Debug|x64
 		{B2C3D4E5-F6A7-B8C9-D0E1-F2A3B4C5D6E7}.Release|x64.ActiveCfg = Release|x64
 		{B2C3D4E5-F6A7-B8C9-D0E1-F2A3B4C5D6E7}.Release|x64.Build.0 = Release|x64
+		{D8B0F4C2-6E53-4A9F-B2D7-0C4E8F1A6B92}.Debug|x64.ActiveCfg = Debug|x64
+		{D8B0F4C2-6E53-4A9F-B2D7-0C4E8F1A6B92}.Debug|x64.Build.0 = Debug|x64
+		{D8B0F4C2-6E53-4A9F-B2D7-0C4E8F1A6B92}.Release|x64.ActiveCfg = Release|x64
+		{D8B0F4C2-6E53-4A9F-B2D7-0C4E8F1A6B92}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

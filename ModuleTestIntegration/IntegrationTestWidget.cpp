@@ -5,6 +5,7 @@
 #include <QTextEdit>
 #include <QLineEdit>
 #include <QSpinBox>
+#include <QCheckBox>
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QVBoxLayout>
@@ -52,6 +53,14 @@ IntegrationTestWidget::IntegrationTestWidget(QWidget *parent)
     spinDoorInput   = new QSpinBox(); spinDoorInput->setRange(0, 17);   spinDoorInput->setValue(0);
     spinWindowInput = new QSpinBox(); spinWindowInput->setRange(0, 17); spinWindowInput->setValue(1);
 
+    chkInvertInputs = new QCheckBox("Capteurs NC (Normalement Fermes — contact ferme = porte/fenetre fermee)");
+    chkInvertInputs->setChecked(true);   // valeur par defaut : capteurs NC standard
+    chkInvertInputs->setToolTip(
+        "A cocher (par defaut) pour des capteurs magnetiques NC :\n"
+        "  DI HIGH (1) = porte fermee,  DI LOW (0) = porte ouverte.\n"
+        "Decocher si capteurs NO : DI HIGH (1) = porte ouverte."
+    );
+
     formConf->addRow("IP PET-7067 (sorties : sirene, flash, gache) :", editOutputIp);
     formConf->addRow("IP PET-7050 (entrees : capteurs porte/fenetre) :", editInputIp);
     formConf->addRow("Port API HTTP (arm/disarm depuis IHM E1) :", spinHttpPort);
@@ -60,6 +69,7 @@ IntegrationTestWidget::IntegrationTestWidget(QWidget *parent)
     formConf->addRow("Adresse DO flash :", spinFlashCoil);
     formConf->addRow("Adresse DI porte :", spinDoorInput);
     formConf->addRow("Adresse DI fenetre :", spinWindowInput);
+    formConf->addRow("", chkInvertInputs);
 
     main->addWidget(grpConf);
 
@@ -206,6 +216,7 @@ void IntegrationTestWidget::onBtnStartClicked()
     m_controller->setDoorInputAddress  (static_cast<quint16>(spinDoorInput->value()));
     m_controller->setWindowInputAddress(static_cast<quint16>(spinWindowInput->value()));
     m_controller->setAlarmDuration(spinAlarmDuration->value() * 1000);
+    m_controller->setInputsInverted(chkInvertInputs->isChecked());
 
     if (m_controller->start()) {
         m_httpApi->start(static_cast<quint16>(spinHttpPort->value()));
@@ -327,4 +338,5 @@ void IntegrationTestWidget::updateButtons()
     spinFlashCoil->setEnabled(!running);
     spinDoorInput->setEnabled(!running);
     spinWindowInput->setEnabled(!running);
+    chkInvertInputs->setEnabled(!running);
 }

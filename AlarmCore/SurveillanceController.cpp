@@ -121,6 +121,12 @@ void SurveillanceController::arm()
 {
     if (m_armed) return;
 
+    // Sécurité : on ne peut armer que si toutes les ouvertures sont fermées
+    if (m_doorOpen || m_windowOpen) {
+        emit logMessage("ARMEMENT REFUSE : ferme toutes les portes et fenetres d'abord !");
+        return;
+    }
+
     m_armed = true;
     m_intrusionAlerted = false;
     emit armedChanged(true);
@@ -244,35 +250,37 @@ void SurveillanceController::evaluateIntrusion(const QString &source, bool senso
 void SurveillanceController::onPollInputsTimeout()
 {
     if (m_inputModbus && m_inputModbus->state() == QAbstractSocket::ConnectedState) {
-        // Lit 2 entrées consécutives à partir de l'adresse de la porte.
-        // On suppose porte (offset 0) + fenêtre (offset 1) côte à côte.
-        // Si ce n'est pas le cas chez toi, fais deux lectures séparées.
-        m_inputModbus->readMultipleInputsStatusFC2(m_doorInputAddress, 2);
+        // Deux lectures séparées : chacune revient dans onInputsReceived
+        // avec le startAddress correspondant, ce qui permet d'identifier
+        // quelle entrée a répondu (même si porte et fenêtre ne sont pas consécutives).
+        m_inputModbus->readMultipleInputsStatusFC2(m_doorInputAddress,   1);
+        m_inputModbus->readMultipleInputsStatusFC2(m_windowInputAddress, 1);
     }
 }
 
 void SurveillanceController::onInputsReceived(quint16 startAddress, QVector<bool> values)
 {
-    Q_UNUSED(startAddress);
-    if (values.size() < 2) return;
+    if (values.isEmpty()) return;
 
-    bool doorOpen   = values[0];
-    bool windowOpen = values[1];
+    // Inversion si capteurs NC (Normalement Fermés) :
+    //   NC fermé  → DI HIGH (true)  → ouvert = false  ✓
+    //   NC ouvert → DI LOW  (false) → ouvert = true   ✓
+    bool isOpen = m_invertInputs ? !values[0] : values[0];
 
-    // Changement d'état porte
-    if (doorOpen != m_doorOpen) {
-        m_doorOpen = doorOpen;
-        emit doorStateChanged(doorOpen);
-        emit logMessage(QString("Porte : %1").arg(doorOpen ? "OUVERTE" : "fermee"));
-        evaluateIntrusion("porte", doorOpen);
-    }
-
-    // Changement d'état fenêtre
-    if (windowOpen != m_windowOpen) {
-        m_windowOpen = windowOpen;
-        emit windowStateChanged(windowOpen);
-        emit logMessage(QString("Fenetre : %1").arg(windowOpen ? "OUVERTE" : "fermee"));
-        evaluateIntrusion("fenetre", windowOpen);
+    if (startAddress == m_doorInputAddress) {
+        if (isOpen != m_doorOpen) {
+            m_doorOpen = isOpen;
+            emit doorStateChanged(isOpen);
+            emit logMessage(QString("Porte : %1").arg(isOpen ? "OUVERTE" : "fermee"));
+            evaluateIntrusion("porte", isOpen);
+        }
+    } else if (startAddress == m_windowInputAddress) {
+        if (isOpen != m_windowOpen) {
+            m_windowOpen = isOpen;
+            emit windowStateChanged(isOpen);
+            emit logMessage(QString("Fenetre : %1").arg(isOpen ? "OUVERTE" : "fermee"));
+            evaluateIntrusion("fenetre", isOpen);
+        }
     }
 }
 

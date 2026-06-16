@@ -16,84 +16,99 @@
 #include <QNetworkRequest>
 #include <QUrl>
 #include <QHostAddress>
+#include <QTextDocument>
+#include <QPalette>
+#include <QTextCursor>
 
-// ─── Adresses reseau (cablage labo — ne pas modifier) ────────────────────────
+// ─── Adresses reseau (cablage labo — ne pas modifier) 
 static const QString MODBUS_OUT_IP   = "172.29.240.1"; // PET-7067 sorties
 static const QString MODBUS_IN_IP    = "172.29.240.2"; // PET-7050 entrees
 static const QString ADJUDICATOR_URL = "http://172.29.19.193";
 static const quint16 RFID_PORT       = 8080;
 static const quint16 ALARM_API_PORT  = 80;
 
-// IPs des lecteurs RFID Arduino — identifies pour le journal
-static const QString READER_IP_1 = "172.29.19.200"; // Lecteur 1 (entree principale)
-static const QString READER_IP_2 = "172.29.19.201"; // Lecteur 2 (entree secondaire)
+// IPs des lecteurs RFID Arduino
+static const QString READER_IP_1 = "172.29.19.200"; // Lecteur 1 
+static const QString READER_IP_2 = "172.29.19.201"; // Lecteur 2 
 
-// ─── Capteurs DI / PET-7050 ───────────────────────────────────────────────────
-//  Tous NC (Normalement Fermes) : contact ferme = DI HIGH = 1
-//  isOpen = !value (inversion pour avoir vrai = ouvert)
-//
-//  Index : DI4=0 DI5=1 DI6=2 DI7=3 DI8=4 DI9=5
 static const QString SENSOR_NAMES[6] = {
-    "Mvt CIEL1",        // DI4 — detecteur mouvement CIEL1
-    "Porte CIEL1",      // DI5 — porte CIEL1 (NC)
-    "Mvt CIEL2",        // DI6 — detecteur mouvement CIEL2
-    "Porte CIEL2",      // DI7 — porte CIEL2 (NC)
-    "Mvt Physique",     // DI8 — detecteur mouvement salle physique
-    "Portes Physique",  // DI9 — portes salle physique (NC)
+    "Mvt CIEL1",        // DI4 
+    "Porte CIEL1",      // DI5 
+    "Mvt CIEL2",        // DI6 
+    "Porte CIEL2",      // DI7 
+    "Mvt Physique",     // DI8 
+    "Portes Physique",  // DI9 
 };
 
-// ─── Sorties DO / PET-7067 (canal, base 0) ────────────────────────────────────
+static const QString SENSOR_ZONES[6] = {
+    "ciel1",    // DI4
+    "ciel1",    // DI5
+    "ciel2",    // DI6
+    "ciel2",    // DI7
+    "physique", // DI8
+    "physique", // DI9
+};
+static const QString SENSOR_LABELS_BACK[6] = {
+    QString::fromUtf8("D\xc3\xa9tecteur mouvement CIEL 1"),              // DI4
+    QString::fromUtf8("Porte transition CIEL 1-2 / fen\xc3\xaatre"),     // DI5
+    QString::fromUtf8("D\xc3\xa9tecteur mouvement CIEL 2"),              // DI6
+    QString::fromUtf8("Porte CIEL 2 + fen\xc3\xaatre"),                  // DI7
+    QString::fromUtf8("D\xc3\xa9tecteur mouvement Physique"),            // DI8
+    QString::fromUtf8("Portes Physique + fen\xc3\xaatre + bureau"),      // DI9
+};
+
+// Capteurs bloquant l'armement; portes seulement 
+static const bool SENSOR_BLOCKS_ARM[6] = {
+    false,  
+    true,   
+    false,  
+    true,   
+    false,  
+    true,   
+};
+
+// Sorties DO / PET-7067 (canal, base 0) 
 static const quint16 DO_GACHE          = 0;
 static const quint16 DO_FLASH_CIEL1    = 1;
 static const quint16 DO_SIREN_CIEL1    = 2;
 static const quint16 DO_FLASH_CIEL2    = 3;
 static const quint16 DO_SIREN_CIEL2    = 4;
 // DO5 non cablé
-static const quint16 DO_SIREN_PHYSIQUE = 6;
-static const quint16 DO_FLASH_PHYSIQUE = 7;
+static const quint16 DO_SIREN_PHYSIQUE = 6; // DO6 — sirene Labo Physique
+static const quint16 DO_FLASH_PHYSIQUE = 7; // DO7 — flash  Labo Physique
 
-// ─── Durées (ne pas modifier sans decision du groupe) ─────────────────────────
+//  Durées (ne pas modifier sans decision du groupe) 
 static const int GACHE_DURATION_MS  = 2000;    //  2 secondes (pulse gache)
-static const int SIREN_DURATION_MS  = 180000;  //  3 minutes  (sirenes)
+static const int SIREN_DURATION_MS  = 2000;  //  3 minutes  (sirenes)
 static const int SENSOR_POLL_MS     = 1000;    //  1 seconde  (polling capteurs)
 static const int SCHEDULE_POLL_MS   = 60000;   // 60 secondes (planning adjudicator)
 
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  Constructeur / Destructeur
-// ─────────────────────────────────────────────────────────────────────────────
 
 LaboMonitoringWidget::LaboMonitoringWidget(QWidget *parent)
     : QWidget(parent)
 {
-    setWindowTitle("Labo Monitoring — Surveillance & Controle d'acces (E2)");
+    setWindowTitle("Labo Monitoring — Surveillance & Controle d'acces");
     resize(900, 740);
 
-    // ── 1. SurveillanceController ─────────────────────────────────────────────
-    //  Configure SANS adresse IP Modbus :
-    //    -> ne cree pas de connexion reseau elle-meme
-    //    -> sert uniquement de machine a etats arm/disarm pour SurveillanceHttpApi
-    //  Le widget gere directement les capteurs et les sorties.
+    
     m_surveillance = new SurveillanceController(this);
-    // Pas de setOutputModuleAddress / setInputModuleAddress => IPs vides
 
-    // ── 2. API HTTP pour l'Etudiant 1 (arm/disarm depuis le site web) ─────────
+    // ── 2. API HTTP pour l'Etudiant 1 (arm/disarm depuis le site web) 
     m_httpApi = new SurveillanceHttpApi(m_surveillance, this);
 
-    // ── 3. Pattern Observer : AlertNotifier + SMS + Mail ─────────────────────
+    // ── 3. Pattern Observer : AlertNotifier + SMS + Mail
     m_alertNotifier = new AlertNotifier(this);
     m_alertNotifier->addNotificationStrategy(new SMSAlertNotifierStrategy (m_alertNotifier));
     m_alertNotifier->addNotificationStrategy(new MailAlertNotifierStrategy(m_alertNotifier));
-    // Note : l'alerte est declenchee directement (onAlert) depuis activateAlarm()
-    // -> pas besoin d'enregistrer comme listener de m_surveillance
-    //    (dont les sorties ne sont pas utilisees ici)
 
-    // ── 4. Modbus PET-7050 (lecture capteurs DI4..DI9) ────────────────────────
+    // ── 4. Modbus PET-7050 (lecture capteurs DI4..DI9)
     m_inputModbus = new QModbusTcpClient(MODBUS_IN_IP, 502, 1, this);
     m_pollTimer   = new QTimer(this);
     m_pollTimer->setInterval(SENSOR_POLL_MS);
 
-    // ── 5. Modbus PET-7067 (gache + flash + sirenes) ─────────────────────────
+    // ── 5. Modbus PET-7067 (gache + flash + sirenes)
     m_outputModbus = new QModbusTcpClient(MODBUS_OUT_IP, 502, 1, this);
     m_gacheTimer   = new QTimer(this);
     m_gacheTimer->setSingleShot(true);
@@ -102,13 +117,13 @@ LaboMonitoringWidget::LaboMonitoringWidget(QWidget *parent)
     m_sirenTimer->setSingleShot(true);
     m_sirenTimer->setInterval(SIREN_DURATION_MS);
 
-    // ── 6. Serveur RFID + reseau ──────────────────────────────────────────────
+    // ── 6. Serveur RFID + reseau 
     m_rfidServer    = new QTcpServer(this);
     m_nam           = new QNetworkAccessManager(this);
     m_scheduleTimer = new QTimer(this);
     m_scheduleTimer->setInterval(SCHEDULE_POLL_MS);
 
-    // ── Connexions signaux/slots ──────────────────────────────────────────────
+    // Connexions signaux/slots 
 
     // SurveillanceController (arm/disarm depuis HTTP API E1)
     connect(m_surveillance, &SurveillanceController::armedChanged,
@@ -146,24 +161,16 @@ LaboMonitoringWidget::LaboMonitoringWidget(QWidget *parent)
     connect(m_scheduleTimer, &QTimer::timeout,
             this, &LaboMonitoringWidget::onScheduleTimer);
 
-    // ── IHM ──────────────────────────────────────────────────────────────────
+    // ── IHM 
     buildUi();
     updateButtons();
 
     log("=== Labo Monitoring — Etudiant 2 (BTS Cybersecu / IR) ===");
-    log(QString("PET-7067 sorties : %1  |  PET-7050 entrees : %2")
-            .arg(MODBUS_OUT_IP, MODBUS_IN_IP));
-    log(QString("Adjudicator (E1) : %1  |  RFID : port %2  |  API E1 : port %3")
-            .arg(ADJUDICATOR_URL).arg(RFID_PORT).arg(ALARM_API_PORT));
-    log("Capteurs : DI4 Mvt1 | DI5 Porte1 | DI6 Mvt2 | DI7 Porte2 | DI8 MvtPhy | DI9 PortesPhy");
-    log(QString("Alarme   : sirenes %1 s puis extinction — flash restent ON jusqu'au reset")
-            .arg(SIREN_DURATION_MS / 1000));
-    log("Appuyez sur 'Demarrer le service' pour activer la surveillance.");
 }
 
 LaboMonitoringWidget::~LaboMonitoringWidget()
 {
-    // Securite : tout eteindre avant destruction
+    // Securitée; tous eteindre avant destruction
     if (m_outputModbus &&
         m_outputModbus->state() == QAbstractSocket::ConnectedState) {
         stopAllOutputs();
@@ -171,16 +178,14 @@ LaboMonitoringWidget::~LaboMonitoringWidget()
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  Construction de l'IHM
-// ─────────────────────────────────────────────────────────────────────────────
 
 void LaboMonitoringWidget::buildUi()
 {
     QVBoxLayout *main = new QVBoxLayout(this);
     main->setSpacing(5);
 
-    // ── Demarrage / Arret ────────────────────────────────────────────────────
+    // ── Demarrage / Arret
     {
         QHBoxLayout *row = new QHBoxLayout();
         m_btnStart = new QPushButton("Demarrer le service");
@@ -196,30 +201,17 @@ void LaboMonitoringWidget::buildUi()
         connect(m_btnStop,  &QPushButton::clicked, this, &LaboMonitoringWidget::onBtnStopClicked);
     }
 
-    // ── Connexions ────────────────────────────────────────────────────────────
-    {
-        QGroupBox   *grp  = new QGroupBox("Connexions");
-        QGridLayout *grid = new QGridLayout(grp);
-        grid->setColumnStretch(1, 1);
-        grid->setColumnStretch(3, 1);
+  
+    m_lblModbusIn    = new QLabel("---", this);
+    m_lblModbusOut   = new QLabel("---", this);
+    m_lblSrvRfid     = new QLabel("---", this);
+    m_lblSrvAlarmApi = new QLabel("---", this);
+    m_lblModbusIn->hide();
+    m_lblModbusOut->hide();
+    m_lblSrvRfid->hide();
+    m_lblSrvAlarmApi->hide();
 
-        m_lblModbusIn    = new QLabel("non connecte");
-        m_lblModbusOut   = new QLabel("non connecte");
-        m_lblSrvRfid     = new QLabel("arrete");
-        m_lblSrvAlarmApi = new QLabel("arretee");
-
-        grid->addWidget(new QLabel("PET-7050 (capteurs) :"),   0, 0);
-        grid->addWidget(m_lblModbusIn,                          0, 1);
-        grid->addWidget(new QLabel("PET-7067 (sorties) :"),     0, 2);
-        grid->addWidget(m_lblModbusOut,                         0, 3);
-        grid->addWidget(new QLabel("Serveur RFID (port 80) :"), 1, 0);
-        grid->addWidget(m_lblSrvRfid,                           1, 1);
-        grid->addWidget(new QLabel("API E1 (port 8080) :"),     1, 2);
-        grid->addWidget(m_lblSrvAlarmApi,                       1, 3);
-        main->addWidget(grp);
-    }
-
-    // ── Capteurs (toutes salles) ──────────────────────────────────────────────
+    // Capteurs (toutes salles) 
     {
         QGroupBox   *grp  = new QGroupBox("Capteurs — toutes salles (NC : vert=ferme, rouge=ouvert)");
         QGridLayout *grid = new QGridLayout(grp);
@@ -234,7 +226,7 @@ void LaboMonitoringWidget::buildUi()
         main->addWidget(grp);
     }
 
-    // ── Surveillance (alarme) ─────────────────────────────────────────────────
+    // ── Surveillance (alarme) 
     {
         QGroupBox   *grp  = new QGroupBox("Surveillance");
         QVBoxLayout *vbox = new QVBoxLayout(grp);
@@ -276,7 +268,7 @@ void LaboMonitoringWidget::buildUi()
 
         // Planning
         m_chkAutoSchedule = new QCheckBox(
-            "Armement automatique selon le planning (recupere depuis adjudicator)");
+            "Armement automatique selon le planning définit sur le site internet");
         m_chkAutoSchedule->setChecked(true);
         vbox->addWidget(m_chkAutoSchedule);
 
@@ -287,7 +279,7 @@ void LaboMonitoringWidget::buildUi()
         main->addWidget(grp);
     }
 
-    // ── Controle d'acces (RFID + gache) ──────────────────────────────────────
+    // ── Controle d'acces (RFID + gache) 
     {
         QGroupBox   *grp  = new QGroupBox("Controle d'acces (badge -> gache DO0 pulse 2 s)");
         QFormLayout *form = new QFormLayout(grp);
@@ -312,7 +304,7 @@ void LaboMonitoringWidget::buildUi()
                 this, [this]() { closeGache(); });
     }
 
-    // ── Journal ───────────────────────────────────────────────────────────────
+    // ── Journal 
     main->addWidget(new QLabel("Journal :"));
     m_textLog = new QTextEdit();
     m_textLog->setReadOnly(true);
@@ -321,24 +313,20 @@ void LaboMonitoringWidget::buildUi()
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  Demarrage / Arret
-// ─────────────────────────────────────────────────────────────────────────────
 
 void LaboMonitoringWidget::onBtnStartClicked()
 {
     if (m_running) return;
 
-    // 1. SurveillanceController (machine a etats pour API E1, pas de Modbus)
+    // 1. SurveillanceController
     m_surveillance->start();
 
     // 2. API HTTP E1 (arm/disarm depuis le site web)
     if (m_httpApi->start(ALARM_API_PORT)) {
         setStatus(m_lblSrvAlarmApi, QString("active (port %1)").arg(ALARM_API_PORT), "#2e7d32");
-        log(QString("API HTTP E1 active — port %1.").arg(ALARM_API_PORT));
     } else {
         setStatus(m_lblSrvAlarmApi, "erreur (port occupe ?)", "#b71c1c");
-        log(QString("Avertissement : API HTTP E1 indisponible (port %1).").arg(ALARM_API_PORT));
     }
 
     // 3. Modbus PET-7050 (lecture capteurs)
@@ -352,11 +340,8 @@ void LaboMonitoringWidget::onBtnStartClicked()
     // 5. Serveur RFID (Arduino POST /rfid/scan)
     if (m_rfidServer->listen(QHostAddress::Any, RFID_PORT)) {
         setStatus(m_lblSrvRfid, QString("actif (port %1)").arg(RFID_PORT), "#2e7d32");
-        log(QString("Serveur RFID actif — port %1.").arg(RFID_PORT));
     } else {
         setStatus(m_lblSrvRfid, "erreur : port occupe", "#b71c1c");
-        log(QString("ERREUR serveur RFID : port %1 — %2")
-                .arg(RFID_PORT).arg(m_rfidServer->errorString()));
     }
 
     // 6. Planning adjudicator
@@ -424,16 +409,15 @@ void LaboMonitoringWidget::onBtnStopClicked()
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  Arm / Disarm (manuel ou via planning — ou via HTTP API E1)
-// ─────────────────────────────────────────────────────────────────────────────
+//  Arm / Disarm
 
 void LaboMonitoringWidget::onBtnArmClicked()
 {
-    // Refuser l'armement si un capteur est ouvert
+    // Refuser l'armement uniquement si une PORTE est ouverte
+    // (les detecteurs de mouvement sont ignores pour l'armement)
     for (int i = 0; i < NUM_SENSORS; ++i) {
-        if (m_sensorOpen[i]) {
-            log(QString("ARMEMENT REFUSE : %1 est ouvert — ferme toutes les ouvertures d'abord !")
+        if (SENSOR_BLOCKS_ARM[i] && m_sensorOpen[i]) {
+            log(QString("ARMEMENT REFUSE : %1 est ouverte — ferme la porte d'abord !")
                     .arg(SENSOR_NAMES[i]));
             return;
         }
@@ -454,21 +438,17 @@ void LaboMonitoringWidget::onBtnResetFlashClicked()
     if (!m_flashActive) return;
 
     if (m_outputModbus->state() == QAbstractSocket::ConnectedState) {
-        m_outputModbus->forceSingleCoilFC5(DO_FLASH_CIEL1,    false);
-        m_outputModbus->forceSingleCoilFC5(DO_FLASH_CIEL2,    false);
-        m_outputModbus->forceSingleCoilFC5(DO_FLASH_PHYSIQUE, false);
+        m_outputModbus->forceMultipleCoilsFC15(DO_FLASH_CIEL1,    {false, false, false, false});
+        m_outputModbus->forceMultipleCoilsFC15(DO_SIREN_PHYSIQUE, {false, false});
     }
     m_flashActive = false;
     updateButtons(); // desactive le bouton Reset Flash
     m_lblAlarmStatus->setText("OK — flash eteints");
     m_lblAlarmStatus->setStyleSheet("color:#2e7d32;");
-    log("Flash eteints (reset manuel).");
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  Polling capteurs (PET-7050, DI4..DI9)
-// ─────────────────────────────────────────────────────────────────────────────
 
 void LaboMonitoringWidget::onPollTimer()
 {
@@ -492,43 +472,46 @@ void LaboMonitoringWidget::onSensorsReceived(quint16 /*startAddress*/, QVector<b
                       isOpen ? "OUVERT" : "ferme",
                       isOpen ? "#b71c1c" : "#2e7d32");
 
-            log(QString("%1 (DI%2) : %3")
-                    .arg(SENSOR_NAMES[i])
-                    .arg(DI_START + i)
-                    .arg(isOpen ? "OUVERT" : "ferme"));
+            // Log capteurs uniquement quand une alarme est en cours (declenchee et pas encore desarmee)
+            // m_intrusionAlerted = vrai depuis le declenchement, isArmed() = faux apres desarme
+            if (m_intrusionAlerted && m_surveillance->isArmed()) {
+                log(QString("%1 (DI%2) : %3")
+                        .arg(SENSOR_NAMES[i])
+                        .arg(DI_START + i)
+                        .arg(isOpen ? "OUVERT" : "ferme"));
+            }
 
-            // Declenchement alarme si : sensor ouvert + systeme arme + pas deja actif
-            if (isOpen && m_surveillance->isArmed() && !m_alarmActive) {
+            // Declenchement alarme si : sensor ouvert + systeme arme + alarme non active
+            // ET pas deja signale (anti-boucle : empêche le re-déclenchement apres fin sirènes)
+            const bool wasAlarmActive = m_alarmActive;
+            if (isOpen && m_surveillance->isArmed() && !m_alarmActive && !m_intrusionAlerted) {
                 activateAlarm(SENSOR_NAMES[i]);
+            }
+
+            // Enregistrer en BDD (backend E1) uniquement si le systeme est ARME
+            if (m_surveillance->isArmed()) {
+                // triggered = vrai si ce changement a provoque le declenchement de l'alarme
+                const bool justTriggered = !wasAlarmActive && m_alarmActive;
+                sendDiEventToBackend(i, isOpen, justTriggered);
             }
         }
     }
 
-    // Reset anti-spam quand tout est ferme et alarme inactive
-    if (!m_alarmActive && m_intrusionAlerted) {
-        bool allClosed = true;
-        for (int i = 0; i < NUM_SENSORS; ++i)
-            if (m_sensorOpen[i]) { allClosed = false; break; }
-        if (allClosed) {
-            m_intrusionAlerted = false;
-            log("Tous les capteurs fermes — systeme pret pour prochaine intrusion.");
-        }
-    }
+    // m_intrusionAlerted ne se remet a false QUE via onArmedChanged(true)
+    // (desarmement + rearmement delibere) — pas de reset automatique quand les
+    // capteurs se ferment, pour eviter le re-declenchement dans le meme episode.
 }
 
 void LaboMonitoringWidget::onInputModbusConnected()
 {
     setStatus(m_lblModbusIn, QString("connecte (%1)").arg(MODBUS_IN_IP), "#2e7d32");
     m_pollTimer->start();
-    log(QString("PET-7050 connecte (%1) — polling capteurs toutes les %2 s.")
-            .arg(MODBUS_IN_IP).arg(SENSOR_POLL_MS / 1000));
 }
 
 void LaboMonitoringWidget::onInputModbusDisconnected()
 {
     setStatus(m_lblModbusIn, "deconnecte", "#b71c1c");
     m_pollTimer->stop();
-    log("PET-7050 deconnecte — polling capteurs arrete.");
 }
 
 void LaboMonitoringWidget::onOutputModbusConnected()
@@ -542,8 +525,6 @@ void LaboMonitoringWidget::onOutputModbusConnected()
     m_outputModbus->forceSingleCoilFC5(DO_SIREN_CIEL2,    false);
     m_outputModbus->forceSingleCoilFC5(DO_SIREN_PHYSIQUE, false);
     m_outputModbus->forceSingleCoilFC5(DO_FLASH_PHYSIQUE, false);
-    log(QString("PET-7067 connecte (%1) — toutes les sorties mises a OFF (securite).")
-            .arg(MODBUS_OUT_IP));
 }
 
 void LaboMonitoringWidget::onOutputModbusDisconnected()
@@ -551,7 +532,6 @@ void LaboMonitoringWidget::onOutputModbusDisconnected()
     setStatus(m_lblModbusOut, "deconnecte", "#b71c1c");
     m_gacheOpen    = false;
     m_alarmActive  = false;
-    log("PET-7067 deconnecte — sorties hors tension (relais repos).");
 }
 
 
@@ -567,14 +547,11 @@ void LaboMonitoringWidget::activateAlarm(const QString &source)
     if (m_outputModbus->state() != QAbstractSocket::ConnectedState) {
         log("ATTENTION : PET-7067 non connecte — impossible d'activer l'alarme physique !");
     } else {
-        // Allumer TOUTES les sirenes
-        m_outputModbus->forceSingleCoilFC5(DO_SIREN_CIEL1,    true);
-        m_outputModbus->forceSingleCoilFC5(DO_SIREN_CIEL2,    true);
-        m_outputModbus->forceSingleCoilFC5(DO_SIREN_PHYSIQUE, true);
-        // Allumer TOUS les flash
-        m_outputModbus->forceSingleCoilFC5(DO_FLASH_CIEL1,    true);
-        m_outputModbus->forceSingleCoilFC5(DO_FLASH_CIEL2,    true);
-        m_outputModbus->forceSingleCoilFC5(DO_FLASH_PHYSIQUE, true);
+        // FC15 : active TOUS les relais sirenes + flash en deux commandes atomiques
+        // DO1=flash CIEL1, DO2=sirene CIEL1, DO3=flash CIEL2, DO4=sirene CIEL2
+        m_outputModbus->forceMultipleCoilsFC15(DO_FLASH_CIEL1,    {true, true, true, true});
+        // DO6=sirene Physique, DO7=flash Physique
+        m_outputModbus->forceMultipleCoilsFC15(DO_SIREN_PHYSIQUE, {true, true});
     }
 
     m_alarmActive = true;
@@ -591,8 +568,10 @@ void LaboMonitoringWidget::activateAlarm(const QString &source)
                                   .arg(SIREN_DURATION_MS / 60000).arg(source));
     m_lblAlarmStatus->setStyleSheet("font-weight:bold; color:#b71c1c;");
 
-    log(QString("!!! ALARME DECLENCHEE — %1 — sirenes %2 min + flash permanents !!!")
-            .arg(source).arg(SIREN_DURATION_MS / 60000));
+    // Log intrusion en ROUGE pour le distinguer dans le journal
+    appendLog(QString("!!! ALARME DECLENCHEE — %1 — sirenes %2 min + flash permanents !!!")
+                  .arg(source).arg(SIREN_DURATION_MS / 60000),
+              QColor("#b71c1c"));
 
     // SMS + mail (anti-spam : une seule alerte par episode)
     if (!m_intrusionAlerted) {
@@ -600,7 +579,7 @@ void LaboMonitoringWidget::activateAlarm(const QString &source)
         const QString msg = QString("INTRUSION detectee au labo — source : %1 — %2")
                 .arg(source, QDateTime::currentDateTime().toString("dd/MM hh:mm:ss"));
         m_alertNotifier->onAlert(msg);
-        log("SMS + mail envoyes (AlertNotifier).");
+        appendLog("SMS + mail envoyes (AlertNotifier).", QColor("#b71c1c"));
     }
 }
 
@@ -616,9 +595,10 @@ void LaboMonitoringWidget::stopSirens()
     if (!m_alarmActive) return;
 
     if (m_outputModbus->state() == QAbstractSocket::ConnectedState) {
-        m_outputModbus->forceSingleCoilFC5(DO_SIREN_CIEL1,    false);
-        m_outputModbus->forceSingleCoilFC5(DO_SIREN_CIEL2,    false);
-        m_outputModbus->forceSingleCoilFC5(DO_SIREN_PHYSIQUE, false);
+        // DO1=flash(keep ON), DO2=sirene(OFF), DO3=flash(keep ON), DO4=sirene(OFF)
+        m_outputModbus->forceMultipleCoilsFC15(DO_FLASH_CIEL1,    {true, false, true, false});
+        // DO6=sirene(OFF), DO7=flash(keep ON)
+        m_outputModbus->forceMultipleCoilsFC15(DO_SIREN_PHYSIQUE, {false, true});
     }
     m_alarmActive = false;
     // m_flashActive reste true — flash permanents jusqu'au reset manuel
@@ -630,9 +610,6 @@ void LaboMonitoringWidget::stopSirens()
     }
     m_lblAlarmStatus->setText("Sirenes arretees — FLASH ACTIFS — appuyer sur Reset Flash");
     m_lblAlarmStatus->setStyleSheet("font-weight:bold; color:#e65100;");
-
-    log("Sirenes arretees (3 min ecoules) — flash restent allumes.");
-    log("Appuyez sur 'Reset Flash' pour eteindre les flash.");
 }
 
 void LaboMonitoringWidget::stopAllOutputs()
@@ -640,17 +617,36 @@ void LaboMonitoringWidget::stopAllOutputs()
     m_sirenTimer->stop();
     m_gacheTimer->stop();
 
-    m_outputModbus->forceSingleCoilFC5(DO_GACHE,          false);
-    m_outputModbus->forceSingleCoilFC5(DO_FLASH_CIEL1,    false);
-    m_outputModbus->forceSingleCoilFC5(DO_SIREN_CIEL1,    false);
-    m_outputModbus->forceSingleCoilFC5(DO_FLASH_CIEL2,    false);
-    m_outputModbus->forceSingleCoilFC5(DO_SIREN_CIEL2,    false);
-    m_outputModbus->forceSingleCoilFC5(DO_SIREN_PHYSIQUE, false);
-    m_outputModbus->forceSingleCoilFC5(DO_FLASH_PHYSIQUE, false);
+    m_outputModbus->forceSingleCoilFC5(DO_GACHE, false);           // gache seule (DO0)
+    m_outputModbus->forceMultipleCoilsFC15(DO_FLASH_CIEL1,    {false, false, false, false}); // DO1-DO4
+    m_outputModbus->forceMultipleCoilsFC15(DO_SIREN_PHYSIQUE, {false, false});               // DO6-DO7
 
     m_alarmActive = false;
     m_flashActive = false;
     m_gacheOpen   = false;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Envoi d'un evenement capteur au backend E1 (POST /api/di/event)
+//  Appele uniquement quand le systeme est ARME — la BDD ne garde que les
+//  evenements qui ont de la valeur pour l'historique de surveillance.
+// ─────────────────────────────────────────────────────────────────────────────
+
+void LaboMonitoringWidget::sendDiEventToBackend(int idx, bool isOpen, bool triggered)
+{
+    QJsonObject body;
+    body["channel"]   = static_cast<int>(DI_START + idx);
+    body["zone"]      = SENSOR_ZONES[idx];
+    body["label"]     = SENSOR_LABELS_BACK[idx];
+    body["value"]     = isOpen ? 1 : 0;
+    body["triggered"] = triggered ? 1 : 0;
+
+    QNetworkRequest req(QUrl(ADJUDICATOR_URL + "/api/di/event"));
+    req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    QNetworkReply *reply = m_nam->post(req,
+        QJsonDocument(body).toJson(QJsonDocument::Compact));
+    // fire-and-forget : on supprime la reply quand elle arrive, sans bloquer
+    connect(reply, &QNetworkReply::finished, reply, &QNetworkReply::deleteLater);
 }
 
 void LaboMonitoringWidget::onArmedChanged(bool armed)
@@ -663,26 +659,17 @@ void LaboMonitoringWidget::onArmedChanged(bool armed)
             m_lblAlarmStatus->setText("OK — en surveillance");
             m_lblAlarmStatus->setStyleSheet("color:#2e7d32;");
         }
-        log("Surveillance ARMEE.");
     } else {
-        // Desarmement : couper sirenes si actives (inline, sans appeler stopSirens
+        // Desarmement : couper sirenes + flash si actifs (inline, sans appeler stopSirens
         // pour eviter la boucle stopSirens -> onArmedChanged)
-        if (m_alarmActive) {
+        if (m_alarmActive || m_flashActive) {
             m_sirenTimer->stop();
             if (m_outputModbus->state() == QAbstractSocket::ConnectedState) {
-                m_outputModbus->forceSingleCoilFC5(DO_SIREN_CIEL1,    false);
-                m_outputModbus->forceSingleCoilFC5(DO_SIREN_CIEL2,    false);
-                m_outputModbus->forceSingleCoilFC5(DO_SIREN_PHYSIQUE, false);
+                // Tout eteindre en deux commandes FC15 atomiques
+                m_outputModbus->forceMultipleCoilsFC15(DO_FLASH_CIEL1,    {false, false, false, false});
+                m_outputModbus->forceMultipleCoilsFC15(DO_SIREN_PHYSIQUE, {false, false});
             }
             m_alarmActive = false;
-        }
-        // Flash s'eteignent aussi au desarmement
-        if (m_flashActive) {
-            if (m_outputModbus->state() == QAbstractSocket::ConnectedState) {
-                m_outputModbus->forceSingleCoilFC5(DO_FLASH_CIEL1,    false);
-                m_outputModbus->forceSingleCoilFC5(DO_FLASH_CIEL2,    false);
-                m_outputModbus->forceSingleCoilFC5(DO_FLASH_PHYSIQUE, false);
-            }
             m_flashActive = false;
             updateButtons();
         }
@@ -690,7 +677,6 @@ void LaboMonitoringWidget::onArmedChanged(bool armed)
         m_lblArmed->setStyleSheet("font-weight:bold; color:gray; font-size:13px;");
         m_lblAlarmStatus->setText("---");
         m_lblAlarmStatus->setStyleSheet("color:gray;");
-        log("Surveillance DESARMEE.");
     }
 }
 
@@ -712,8 +698,6 @@ void LaboMonitoringWidget::openGache()
     m_lblGache->setText(QString("DEVERROUILLEE (%1 s)").arg(GACHE_DURATION_MS / 1000));
     m_lblGache->setStyleSheet("font-weight:bold; color:#b71c1c;");
     m_btnCloseGache->setEnabled(true);
-    log(QString("Gache ouverte — DO%1 ON — fermeture dans %2 s.")
-            .arg(DO_GACHE).arg(GACHE_DURATION_MS / 1000));
 }
 
 void LaboMonitoringWidget::closeGache()
@@ -728,7 +712,6 @@ void LaboMonitoringWidget::closeGache()
     m_lblGache->setText("VERROUILLEE");
     m_lblGache->setStyleSheet("font-weight:bold; color:#2e7d32;");
     m_btnCloseGache->setEnabled(false);
-    log("Gache fermee.");
 }
 
 void LaboMonitoringWidget::onGacheTimer() { closeGache(); }
@@ -789,21 +772,16 @@ void LaboMonitoringWidget::onRfidClientReadyRead()
     sendHttpResponse(socket, 200, R"({"ok":true})");
     socket->disconnectFromHost();
 
-    if (body.isEmpty()) { log(QString("POST RFID recu de %1 — body vide.").arg(readerName)); return; }
+    if (body.isEmpty()) return;
 
     const QJsonObject json = QJsonDocument::fromJson(body).object();
-    if (json.isEmpty()) {
-        log(QString("POST RFID (%1) — JSON invalide : %2")
-                .arg(readerName, QString::fromUtf8(body.left(80))));
-        return;
-    }
+    if (json.isEmpty()) return;
 
     QString uid = json["card_id"].toString();
     if (uid.isEmpty()) uid = json["uid"].toString();
     uid = uid.trimmed().toUpper();
 
     if (!uid.isEmpty()) handleRfidScan(uid, readerName);
-    else log(QString("POST RFID (%1) — card_id absent.").arg(readerName));
 }
 
 void LaboMonitoringWidget::onRfidClientDisconnected()
@@ -826,7 +804,6 @@ void LaboMonitoringWidget::sendHttpResponse(QTcpSocket *socket, int code,
 
 void LaboMonitoringWidget::handleRfidScan(const QString &uid, const QString &readerName)
 {
-    log(QString("Badge : %1 — %2 — verification adjudicator...").arg(uid, readerName));
     m_lblLastBadge->setText(uid + "  (verification...)");
     m_lblLastBadge->setStyleSheet("color:#555;");
 
@@ -845,7 +822,7 @@ void LaboMonitoringWidget::onAdjudicatorReply(QNetworkReply *reply)
     const QString readerName = reply->property("readerName").toString();
 
     if (reply->error() != QNetworkReply::NoError) {
-        log(QString("[%1] (%2) ERREUR adjudicator : %3 -> acces refuse.")
+        logBadge(QString("[%1] (%2) ERREUR adjudicator : %3 -> acces refuse.")
                 .arg(uid, readerName, reply->errorString()));
         m_lblLastBadge->setText(uid + "  — ERREUR RESEAU");
         m_lblLastBadge->setStyleSheet("color:#b71c1c; font-weight:bold;");
@@ -858,12 +835,35 @@ void LaboMonitoringWidget::onAdjudicatorReply(QNetworkReply *reply)
     const QString     message    = obj.value("message").toString();
 
     if (authorized) {
-        log(QString("[%1] (%2) ACCES AUTORISE — %3").arg(uid, readerName, owner));
+        logBadge(QString("[%1] (%2) ACCES AUTORISE — %3").arg(uid, readerName, owner));
         m_lblLastBadge->setText(QString("%1  —  %2  —  AUTORISE  (%3)").arg(uid, owner, readerName));
         m_lblLastBadge->setStyleSheet("color:#2e7d32; font-weight:bold;");
         openGache();
+
+        // ── Timer de presence ───────────────────────────────────────────────
+        // Lecteur EXTERIEUR (.200) : la personne ENTRE → on enregistre l'heure
+        // Lecteur INTERIEUR (.201) : la personne SORT  → on calcule la duree
+        if (readerName.contains(READER_IP_1)) {
+            m_entryTimes[uid] = QDateTime::currentDateTime();
+        } else if (readerName.contains(READER_IP_2)) {
+            if (m_entryTimes.contains(uid)) {
+                const QDateTime entree = m_entryTimes.take(uid); // retire de la map
+                const qint64 secsTotal = entree.secsTo(QDateTime::currentDateTime());
+                const qint64 h    = secsTotal / 3600;
+                const qint64 mins = (secsTotal % 3600) / 60;
+                const qint64 secs = secsTotal % 60;
+                const QString duree = (h > 0)
+                    ? QString("%1 h %2 min %3 s").arg(h).arg(mins).arg(secs)
+                    : QString("%1 min %2 s").arg(mins).arg(secs);
+                logBadge(QString("[%1] (%2) SORTIE — duree de presence : %3")
+                             .arg(uid, owner, duree));
+                m_lblLastBadge->setText(
+                    QString("%1  —  %2  —  SORTIE  (%3)").arg(uid, owner, duree));
+            }
+        }
+        // ────────────────────────────────────────────────────────────────────
     } else {
-        log(QString("[%1] (%2) ACCES REFUSE — %3 — %4")
+        logBadge(QString("[%1] (%2) ACCES REFUSE — %3 — %4")
                 .arg(uid, readerName, owner, message.isEmpty() ? "non autorise" : message));
         m_lblLastBadge->setText(QString("%1  —  %2  —  REFUSE  (%3)").arg(uid, owner, readerName));
         m_lblLastBadge->setStyleSheet("color:#b71c1c; font-weight:bold;");
@@ -944,28 +944,45 @@ void LaboMonitoringWidget::applyScheduleArming()
 //  Logs (SurveillanceController / API E1)
 // ─────────────────────────────────────────────────────────────────────────────
 
-void LaboMonitoringWidget::onSurvLog(const QString &msg)
-{
-    // Filtrer les messages verbeux du controleur (timers, polls internes)
-    // On garde uniquement les messages arm/disarm
-    if (msg.contains("arme") || msg.contains("desarme") || msg.contains("REFUSE"))
-        log(QString("[E1-API] %1").arg(msg));
-}
+void LaboMonitoringWidget::onSurvLog(const QString &) { /* logs internes E1 supprimes */ }
 
-void LaboMonitoringWidget::onApiLog(const QString &msg)
-{
-    log(QString("[API E1] %1").arg(msg));
-}
+void LaboMonitoringWidget::onApiLog(const QString &) { /* logs API E1 supprimes */ }
 
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Utilitaires
 // ─────────────────────────────────────────────────────────────────────────────
 
-void LaboMonitoringWidget::log(const QString &msg)
+void LaboMonitoringWidget::appendLog(const QString &msg, const QColor &color)
 {
+    // Filtrer le polling de statut E1 (trop frequent, ne rien afficher)
+    if (msg.contains("GET /surveillance/status")) return;
+
+    m_textLog->setTextColor(color);   // couleur de la ligne a ajouter
     m_textLog->append(QString("[%1] %2")
                           .arg(QDateTime::currentDateTime().toString("hh:mm:ss"), msg));
+
+    // Limiter a 100 lignes : supprimer la plus ancienne si depassement
+    QTextDocument *doc = m_textLog->document();
+    if (doc->blockCount() > 100) {
+        QTextCursor cur(doc);          // curseur au debut du document
+        cur.movePosition(QTextCursor::Start);
+        cur.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+        cur.movePosition(QTextCursor::NextCharacter, QTextCursor::KeepAnchor);
+        cur.removeSelectedText();
+    }
+}
+
+void LaboMonitoringWidget::log(const QString &msg)
+{
+    // Couleur par defaut = couleur de texte du theme
+    appendLog(msg, m_textLog->palette().color(QPalette::Text));
+}
+
+void LaboMonitoringWidget::logBadge(const QString &msg)
+{
+    // Evenements de badge : couleur distincte (bleu) pour ressortir dans le journal
+    appendLog(msg, QColor("#1565c0"));
 }
 
 void LaboMonitoringWidget::updateButtons()

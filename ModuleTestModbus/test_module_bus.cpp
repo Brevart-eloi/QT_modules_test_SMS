@@ -1,5 +1,9 @@
 ﻿#include "test_module_bus.h"
 
+#include <QStatusBar>
+#include <QToolBar>
+#include <QAction>
+
 test_module_bus::test_module_bus(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -30,7 +34,32 @@ test_module_bus::test_module_bus(QWidget *parent)
 	//gâche électrique des Ciel1
 	QObject::connect(ui.GacheOn, SIGNAL(clicked()), this, SLOT(onButtonClicked()));
 	QObject::connect(ui.GacheOff, SIGNAL(clicked()), this, SLOT(onButtonClicked()));
-    
+
+	// --- Etat du systeme (arme / desarme) -----------------------------------
+	// Ajout minimal : un indicateur dans la barre d'etat + deux actions ARMER /
+	// DESARMER dans la barre d'outils existante (sans modifier le fichier .ui).
+	m_lblArmed = new QLabel(this);
+	statusBar()->addPermanentWidget(m_lblArmed);
+
+	QAction* actArm    = ui.mainToolBar->addAction("ARMER");
+	QAction* actDisarm = ui.mainToolBar->addAction("DESARMER");
+	QObject::connect(actArm,    &QAction::triggered, this, [this] { setArmed(true);  });
+	QObject::connect(actDisarm, &QAction::triggered, this, [this] { setArmed(false); });
+
+	setArmed(false);   // etat initial : desarme
+}
+
+// Met a jour l'etat arme/desarme : libelle colore dans la barre d'etat + journal
+void test_module_bus::setArmed(bool armed)
+{
+	m_armed = armed;
+	m_lblArmed->setText(armed ? "Systeme : ARME" : "Systeme : DESARME");
+	m_lblArmed->setStyleSheet(armed
+		? "font-weight:bold; color:#b71c1c; padding:0 8px;"
+		: "font-weight:bold; color:#2e7d32; padding:0 8px;");
+
+	QString timestamp = QDateTime::currentDateTime().toString("dd/MM/yyyy HH:mm:ss");
+	ui.listWidget->addItem(QString("[%1] Systeme %2").arg(timestamp, armed ? "ARME" : "DESARME"));
 }
 
 test_module_bus::~test_module_bus()

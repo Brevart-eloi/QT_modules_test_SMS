@@ -62,6 +62,13 @@ public:
     // Durée pendant laquelle la sirène/flash restent actifs (ms)
     void setAlarmDuration(int ms) { m_alarmDurationMs = ms; }
 
+    // Logique des entrées capteurs :
+    //   true  (défaut) = capteurs NC (Normalement Fermés) : contact fermé quand porte/fenêtre FERMÉE
+    //                    → DI HIGH quand fermé, LOW quand ouvert → il faut inverser
+    //   false           = capteurs NO (Normalement Ouverts) : DI HIGH quand ouvert → logique directe
+    void setInputsInverted(bool inverted) { m_invertInputs = inverted; }
+    bool inputsInverted() const { return m_invertInputs; }
+
     // Période de polling des capteurs (ms)
     void setPollInterval(int ms) { m_pollInputsTimer->setInterval(ms); }
 
@@ -118,6 +125,9 @@ private:
 
     QString m_outputIp; quint16 m_outputPort = 502; quint8 m_outputUnitId = 1;
     QString m_inputIp;  quint16 m_inputPort  = 502; quint8 m_inputUnitId  = 1;
+
+    // Logique d'inversion des entrées (NC par défaut)
+    bool m_invertInputs = true;
 
     // Adresses des sorties (par défaut, à adapter au câblage)
     quint16 m_sirenCoil = 1;
